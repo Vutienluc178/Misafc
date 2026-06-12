@@ -301,6 +301,21 @@
         .slot-row { display: flex; align-items: center; gap: 6px; }
         .slot-row .slot-name { flex: 1; font-size: 13px; font-weight: 600; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slot-row .slot-del { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; border-radius: 8px; padding: 9px 10px; font-size: 13px; cursor: pointer; }
+
+        /* SỔ TAY GHI CHÚ */
+        .note-input-area { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+        .note-input-area textarea { width: 100%; min-height: 60px; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; resize: vertical; outline: none; }
+        .note-input-area textarea:focus { border-color: var(--primary); }
+        .note-save-row { display: flex; gap: 6px; }
+        .btn-note-save { flex: 1; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-note-cancel { background: #e2e8f0; color: var(--text-main); border: none; border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .note-item { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 10px; position: relative; }
+        .note-meta { font-size: 10px; color: var(--text-muted); font-weight: 700; margin-bottom: 3px; display: flex; gap: 6px; align-items: center; }
+        .note-clock-tag { background: var(--primary); color: white; padding: 1px 6px; border-radius: 6px; font-size: 9px; }
+        .note-text { font-size: 13px; white-space: pre-wrap; word-break: break-word; cursor: pointer; }
+        .note-del { position: absolute; top: 6px; right: 8px; background: transparent; border: none; color: var(--danger); font-size: 14px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .note-empty { text-align: center; color: var(--text-muted); font-style: italic; font-size: 12px; padding: 8px 0; }
+        .note-hint { font-size: 10px; color: var(--text-muted); text-align: center; }
     </style>
 </head>
 <body>
@@ -397,6 +412,7 @@
             <button class="btn-tool" onclick="clearDrawings()">🧹 Xóa nét</button>
             <button class="btn-tool" onclick="saveFormation()">💾 Lưu đội hình</button>
             <button class="btn-tool" onclick="openFormationList()">📂 Tải đội hình</button>
+            <button class="btn-tool" onclick="openNotebook()">📒 Sổ tay <span id="noteCount"></span></button>
         </div>
 
         <div class="action-row" id="actionRow">
@@ -458,6 +474,7 @@
             renderScore();
             renderLog();
             populateTemplates();
+            renderNoteCount();
             setTimeout(resizeCanvas, 100);
 
             // Phục hồi lại state hiển thị thời gian nếu trước đó đang chạy
@@ -1153,6 +1170,120 @@
                 else if (item.type === 'player') { const player = players.find(p => p.id === item.id); if (player) addToPitch(player, item.x, item.y, true); }
             });
             renderBench(); savePlayers();
+        }
+
+        // --- SỔ TAY GHI CHÚ (lưu lâu dài, KHÔNG bị xóa khi tạo trận mới) ---
+        const NOTES_KEY = 'saBan_Notes';
+        let editingNoteId = null;
+
+        function getNotes() {
+            try { return JSON.parse(localStorage.getItem(NOTES_KEY) || '[]'); }
+            catch(e) { return []; }
+        }
+        function setNotes(notes) {
+            localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+            renderNoteCount();
+        }
+        function renderNoteCount() {
+            const n = getNotes().length;
+            const el = document.getElementById('noteCount');
+            if (el) el.textContent = n > 0 ? `(${n})` : '';
+        }
+        function formatNoteDate(ts) {
+            const d = new Date(ts);
+            const pad = v => v < 10 ? '0' + v : v;
+            return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function openNotebook() {
+            editingNoteId = null;
+            openModal('📒 Sổ tay ghi chú', body => {
+                // Khu nhập liệu
+                const inputArea = document.createElement('div');
+                inputArea.className = 'note-input-area';
+                const ta = document.createElement('textarea');
+                ta.id = 'noteTextarea';
+                ta.placeholder = 'Ghi điều quan trọng: đối thủ mạnh cánh trái, số 9 địch nhanh, sân trơn, ai đá hay/tệ hôm nay...';
+                const saveRow = document.createElement('div');
+                saveRow.className = 'note-save-row';
+                const btnSave = document.createElement('button');
+                btnSave.className = 'btn-note-save';
+                btnSave.id = 'btnNoteSave';
+                btnSave.textContent = '💾 Lưu ghi chú';
+                btnSave.onclick = saveNote;
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'btn-note-cancel';
+                btnCancel.textContent = 'Hủy';
+                btnCancel.onclick = () => { editingNoteId = null; ta.value = ''; btnSave.textContent = '💾 Lưu ghi chú'; };
+                saveRow.appendChild(btnSave); saveRow.appendChild(btnCancel);
+                inputArea.appendChild(ta); inputArea.appendChild(saveRow);
+                body.appendChild(inputArea);
+
+                const hint = document.createElement('div');
+                hint.className = 'note-hint';
+                hint.textContent = 'Chạm vào nội dung ghi chú để sửa. Ghi chú giữ nguyên cả khi tạo trận mới.';
+                body.appendChild(hint);
+
+                // Danh sách ghi chú (mới nhất trên cùng)
+                const notes = getNotes();
+                if (notes.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'note-empty';
+                    empty.textContent = 'Chưa có ghi chú nào.';
+                    body.appendChild(empty);
+                } else {
+                    notes.forEach(note => {
+                        const item = document.createElement('div');
+                        item.className = 'note-item';
+                        const meta = document.createElement('div');
+                        meta.className = 'note-meta';
+                        meta.innerHTML = `<span>${formatNoteDate(note.created)}</span>` +
+                            (note.clock ? `<span class="note-clock-tag">${note.clock}</span>` : '');
+                        const text = document.createElement('div');
+                        text.className = 'note-text';
+                        text.textContent = note.text;
+                        text.title = 'Chạm để sửa';
+                        text.onclick = () => {
+                            editingNoteId = note.id;
+                            ta.value = note.text;
+                            btnSave.textContent = '✏️ Cập nhật ghi chú';
+                            ta.focus();
+                        };
+                        const del = document.createElement('button');
+                        del.className = 'note-del';
+                        del.textContent = '×';
+                        del.onclick = () => {
+                            if (confirm('Xóa ghi chú này?')) {
+                                setNotes(getNotes().filter(n => n.id !== note.id));
+                                openNotebook();
+                            }
+                        };
+                        item.appendChild(del); item.appendChild(meta); item.appendChild(text);
+                        body.appendChild(item);
+                    });
+                }
+            });
+        }
+
+        function saveNote() {
+            const ta = document.getElementById('noteTextarea');
+            const text = ta.value.trim();
+            if (!text) return;
+            const notes = getNotes();
+            if (editingNoteId) {
+                const note = notes.find(n => n.id === editingNoteId);
+                if (note) note.text = text;
+            } else {
+                notes.unshift({
+                    id: Date.now().toString(),
+                    text: text,
+                    created: Date.now(),
+                    clock: (isRunning || matchSeconds > 0) ? matchClock() : ''
+                });
+            }
+            editingNoteId = null;
+            setNotes(notes);
+            openNotebook(); // vẽ lại danh sách
         }
 
         // --- DRAG & DROP ---
