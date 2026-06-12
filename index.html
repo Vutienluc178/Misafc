@@ -554,6 +554,29 @@
         const btnHalf2 = document.getElementById('btnHalf2');
 
         function getSubThresholdSec() { return (parseInt(subThresholdInput.value) || 15) * 60; }
+        function getHalfLimitSec() { return (parseInt(halfTimeInput.value) || 30) * 60; }
+
+        // Tiến đồng hồ nhưng KHÔNG vượt quá thời gian quy định của 1 hiệp
+        function advanceClock(deltaSec, saveEvery5) {
+            const limit = getHalfLimitSec();
+            const applied = Math.min(deltaSec, Math.max(0, limit - matchSeconds));
+            if (applied > 0) {
+                matchSeconds += applied;
+                updateTimerDisplay();
+                const needUpdateUI = tickPlayers(applied);
+                if (needUpdateUI && (!saveEvery5 || matchSeconds % 5 === 0)) savePlayers();
+            }
+            if (matchSeconds >= limit) endHalf();
+        }
+
+        // Hết giờ quy định: TỰ ĐỘNG DỪNG đồng hồ
+        function endHalf() {
+            if (!isRunning) return;
+            toggleTimer(); // dừng đồng hồ + lưu
+            logEvent('🔚', `Hết Hiệp ${currentHalf} (${parseInt(halfTimeInput.value) || 30}')`);
+            if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+            setTimeout(() => alert(`⏱ HẾT HIỆP ${currentHalf}! Đồng hồ đã tự dừng.`), 100);
+        }
 
         // Yêu cầu giữ màn hình sáng
         async function requestWakeLock() {
@@ -596,10 +619,9 @@
                 const now = Date.now();
                 const deltaSec = Math.floor((now - lastTickTime) / 1000);
                 if (deltaSec > 0) {
-                    matchSeconds += deltaSec;
                     lastTickTime += deltaSec * 1000;
-                    updateTimerDisplay();
-                    if(tickPlayers(deltaSec)) savePlayers();
+                    advanceClock(deltaSec, false);
+                    savePlayers();
                 }
             }
         });
@@ -628,6 +650,10 @@
                 clearInterval(timerInterval); btnPlayPause.textContent = '▶'; btnPlayPause.className = 'btn-icon btn-play'; savePlayers();
                 releaseWakeLock();
             } else {
+                if (matchSeconds >= getHalfLimitSec()) {
+                    alert(`Hiệp ${currentHalf} đã hết giờ quy định! Chuyển hiệp hoặc tăng số phút "1 Hiệp" nếu muốn đá thêm.`);
+                    return;
+                }
                 requestWakeLock();
                 lastTickTime = Date.now();
                 timerInterval = setInterval(() => {
@@ -635,11 +661,8 @@
                     const deltaSec = Math.floor((now - lastTickTime) / 1000);
 
                     if (deltaSec > 0) {
-                        matchSeconds += deltaSec;
                         lastTickTime += deltaSec * 1000;
-                        updateTimerDisplay();
-                        const needUpdateUI = tickPlayers(deltaSec);
-                        if(needUpdateUI && matchSeconds % 5 === 0) savePlayers(); // Lưu đĩa cứng mỗi 5s
+                        advanceClock(deltaSec, true); // Lưu đĩa cứng mỗi 5s, tự dừng khi hết giờ
                     }
                 }, 1000);
                 btnPlayPause.textContent = '⏸'; btnPlayPause.className = 'btn-icon btn-pause';
