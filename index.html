@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -41,7 +40,7 @@
         }
 
         /* =========================================
-           INTRO SCREEN (MÀN HÌNH CHỜ MÀU HỒNG)
+           INTRO SCREEN
            ========================================= */
         #intro-screen {
             position: fixed;
@@ -49,7 +48,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* Gradient màu hồng ấn tượng */
             background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
             z-index: 9999;
             display: flex;
@@ -59,44 +57,13 @@
             color: white;
             transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
         }
-        #intro-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .intro-logo {
-            font-size: 60px;
-            margin-bottom: 10px;
-            animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        .intro-text-main {
-            font-size: 38px;
-            font-weight: 900;
-            text-align: center;
-            text-transform: uppercase;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
-            opacity: 0;
-        }
-        .intro-text-sub {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s forwards;
-            opacity: 0;
-            color: #fff0f5;
-        }
+        #intro-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .intro-logo { font-size: 60px; margin-bottom: 10px; animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .intro-text-main { font-size: 38px; font-weight: 900; text-align: center; text-transform: uppercase; text-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards; opacity: 0; }
+        .intro-text-sub { font-size: 20px; font-weight: bold; margin-top: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s forwards; opacity: 0; color: #fff0f5; }
 
-        @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes bounceIn {
-            0% { transform: scale(0) translateY(-100px); opacity: 0; }
-            50% { transform: scale(1.2) translateY(20px); opacity: 1; }
-            100% { transform: scale(1) translateY(0); opacity: 1; }
-        }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes bounceIn { 0% { transform: scale(0) translateY(-100px); opacity: 0; } 50% { transform: scale(1.2) translateY(20px); opacity: 1; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
 
         /* =========================================
            TOP HALF: PITCH AREA
@@ -155,6 +122,17 @@
         .controls-container { height: 50vh; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 30; display: flex; flex-direction: column; padding: 10px 12px; gap: 8px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         body.fullscreen-mode .controls-container { transform: translateY(100%); }
 
+        /* Bảng Thống Kê Màu Đặt Trên Cùng */
+        .mini-stats-row { display: flex; align-items: center; justify-content: center; gap: 12px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .mini-stats-row.error-state { border-color: var(--danger); background: #fef2f2; animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+        .error-icon { display: none; color: var(--danger); font-size: 14px; font-weight: bold; animation: pulse 1s infinite alternate; }
+        .mini-stats-row.error-state .error-icon { display: block; }
+        @keyframes pulse { from { transform: scale(1); opacity: 0.8;} to { transform: scale(1.2); opacity: 1;} }
+        .mini-stat-pill { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .mini-color-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Timer Panel */
         .timer-panel { display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
         .timer-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .half-selector { display: flex; background: #e2e8f0; border-radius: 6px; padding: 2px; }
@@ -166,16 +144,26 @@
         .timer-display { font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--primary); width: 80px; text-align: center; line-height: 1; }
         .timer-display.overtime { color: var(--danger); }
         .timer-buttons { display: flex; gap: 10px; }
-        .btn-icon { width: 34px; height: 34px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-icon { width: 34px; height: 34px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s; }
+        .btn-icon:active { transform: scale(0.9); }
         .btn-play { background: var(--success); }
         .btn-pause { background: var(--warning); }
-        .btn-new-match { background: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+        .btn-reset { background: var(--danger); font-size: 16px; font-weight: bold; }
 
-        .tactical-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-top: 5px;}
+        /* TACTICAL TOOLS */
+        .tactical-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-top: 5px; transition: all 0.3s ease;}
         .tactical-tools::-webkit-scrollbar { display: none; }
-        .btn-tool { background: #f1f5f9; color: var(--text-main); border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-        .btn-tool.active-draw { background: var(--warning); color: white; border-color: var(--warning); }
+        .btn-tool { background: #f1f5f9; color: var(--text-main); border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; transition: 0.2s;}
+        .btn-tool.active-draw { background: var(--warning) !important; color: white !important; border-color: var(--warning) !important; }
         .btn-tool:active { transform: scale(0.96); }
+
+        .pitch-wrapper .tactical-tools {
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85); padding: 10px; border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px); z-index: 1000; width: max-content; max-width: 95vw;
+        }
+        .pitch-wrapper .tactical-tools .btn-tool { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.2); }
 
         .action-row { display: flex; gap: 8px; align-items: center; margin-top: 5px;}
         .input-group { display: flex; flex: 1; gap: 5px; }
@@ -200,6 +188,7 @@
         .bench-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .bench-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .bench-title { font-size: 13px; font-weight: 700; }
+        .btn-delete-all { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; }
         
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; align-content: start; }
         .player-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 4px 6px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; }
@@ -213,7 +202,7 @@
 </head>
 <body>
 
-    <!-- MÀN HÌNH INTRO MÀU HỒNG -->
+    <!-- MÀN HÌNH INTRO -->
     <div id="intro-screen">
         <div class="intro-logo">🏆</div>
         <div class="intro-text-main">MN Misa FC</div>
@@ -238,8 +227,17 @@
         </div>
     </div>
 
-    <div class="controls-container">
+    <div class="controls-container" id="controlsContainer">
         
+        <!-- BẢNG ĐẾM MÀU -->
+        <div class="mini-stats-row" id="miniStatsPanel">
+            <div class="error-icon" title="Cảnh báo: Không đúng số lượng theo màu quy định!">❌</div>
+            <div class="mini-stat-pill"><div class="mini-color-dot tag-red"></div><span id="count-red">0</span></div>
+            <div class="mini-stat-pill"><div class="mini-color-dot tag-blue"></div><span id="count-blue">0</span></div>
+            <div class="mini-stat-pill"><div class="mini-color-dot tag-yellow"></div><span id="count-yellow">0</span></div>
+            <div class="mini-stat-pill"><div class="mini-color-dot tag-white"></div><span id="count-white">0</span></div>
+        </div>
+
         <div class="timer-panel">
             <div class="timer-top-row">
                 <div class="half-selector">
@@ -256,19 +254,19 @@
                 <div class="timer-display" id="matchTimer">00:00</div>
                 <div class="timer-buttons">
                     <button class="btn-icon btn-play" id="btnPlayPause" onclick="toggleTimer()">▶</button>
+                    <button class="btn-icon btn-reset" onclick="resetMatch()" title="Tạo Trận Mới">↺</button>
                 </div>
-                <button class="btn-new-match" onclick="resetMatch()">⛔ Trận Mới</button>
             </div>
         </div>
 
-        <div class="tactical-tools">
+        <div class="tactical-tools" id="tacticalTools">
             <button class="btn-tool" id="btnToggleDraw" onclick="toggleDrawMode()">🖌 Bút vẽ chiến thuật</button>
             <button class="btn-tool" onclick="clearDrawings()">🧹 Xóa nét</button>
             <button class="btn-tool" onclick="saveFormation()">💾 Lưu đội hình</button>
             <button class="btn-tool" onclick="loadFormation()">📂 Tải đội hình</button>
         </div>
 
-        <div class="action-row">
+        <div class="action-row" id="actionRow">
             <div class="input-group">
                 <input type="text" id="playerName" placeholder="Tên cầu thủ...">
                 <button class="btn-add" onclick="addPlayer()">Thêm</button>
@@ -277,7 +275,7 @@
         </div>
 
         <div class="color-picker">
-            <span class="color-label">Màu:</span>
+            <span class="color-label">Màu áo:</span>
             <div class="swatches">
                 <div class="swatch tag-red" data-color="red" onclick="toggleColor(this)"></div>
                 <div class="swatch tag-blue" data-color="blue" onclick="toggleColor(this)"></div>
@@ -289,36 +287,34 @@
         <div class="bench-area">
             <div class="bench-header">
                 <span class="bench-title">Dự bị <span style="font-weight: normal; color: gray; font-size: 11px;">(Đang nghỉ)</span></span>
+                <button class="btn-delete-all" onclick="clearAllPlayers()">Xóa hết DS</button>
             </div>
             <div class="player-grid" id="playerList"></div>
         </div>
     </div>
 
     <script>
-        // --- XỬ LÝ MÀN HÌNH INTRO ---
+        // --- INTRO SCREEN ---
         window.addEventListener('load', () => {
             const intro = document.getElementById('intro-screen');
-            // Sau 2 giây (2000ms), bắt đầu mờ dần
             setTimeout(() => {
                 intro.classList.add('hidden');
-                // Chờ hiệu ứng mờ kết thúc (0.5s) rồi xóa hoàn toàn khỏi layout
-                setTimeout(() => {
-                    intro.style.display = 'none';
-                }, 500);
+                setTimeout(() => { intro.style.display = 'none'; }, 500);
             }, 2000);
 
-            // Tải dữ liệu cũ
             loadPlayers(); 
             renderBench(); 
             setTimeout(resizeCanvas, 100); 
+
+            // Phục hồi lại state hiển thị thời gian nếu trước đó đang chạy
+            if(matchSeconds > 0) updateTimerDisplay();
         });
 
-        // --- CÁC LOGIC SA BÀN BÊN DƯỚI GIỮ NGUYÊN ---
         const pitch = document.getElementById('pitch');
         const ball = document.getElementById('match-ball');
         makeDraggable(ball);
 
-        // --- FULLSCREEN & HOÁN ĐỔI TỌA ĐỘ 90 ĐỘ ---
+        // --- FULLSCREEN & HOÁN ĐỔI TỌA ĐỘ ---
         function toggleFullscreen() {
             const isEnteringFullscreen = !document.body.classList.contains('fullscreen-mode');
             const pitchRect = pitch.getBoundingClientRect();
@@ -334,10 +330,14 @@
             document.body.classList.toggle('fullscreen-mode');
 
             const btn = document.getElementById('btnFullscreenToggle');
+            const tools = document.getElementById('tacticalTools');
+
             if(isEnteringFullscreen) {
                 btn.innerHTML = '❌ Thu nhỏ lại';
+                document.getElementById('pitchWrapper').appendChild(tools);
             } else {
                 btn.innerHTML = '⤢ Xoay dọc toàn màn';
+                document.getElementById('controlsContainer').insertBefore(tools, document.getElementById('actionRow'));
             }
 
             newPositions.forEach(item => {
@@ -386,14 +386,50 @@
             return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
         }
 
-        // --- QUẢN LÝ THỜI GIAN & HIỆP ĐẤU ---
+        // --- QUẢN LÝ THỜI GIAN & HIỆP ĐẤU BẰNG DATE.NOW() ---
         let matchSeconds = 0, timerInterval = null, isRunning = false;
         let currentHalf = 1;
+        let lastTickTime = 0;
+        let wakeLock = null;
+
         const timerDisplay = document.getElementById('matchTimer');
         const btnPlayPause = document.getElementById('btnPlayPause');
         const halfTimeInput = document.getElementById('halfTimeInput');
         const btnHalf1 = document.getElementById('btnHalf1');
         const btnHalf2 = document.getElementById('btnHalf2');
+
+        // Yêu cầu giữ màn hình sáng
+        async function requestWakeLock() {
+            try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch (err) {}
+        }
+        function releaseWakeLock() {
+            if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
+        }
+
+        // Khắc phục lỗi khi tắt màn hình điện thoại
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') { requestWakeLock(); }
+            
+            if(isRunning && document.visibilityState === 'visible') {
+                const now = Date.now();
+                const deltaSec = Math.floor((now - lastTickTime) / 1000);
+                if (deltaSec > 0) {
+                    matchSeconds += deltaSec;
+                    lastTickTime += deltaSec * 1000;
+                    updateTimerDisplay();
+                    let needUpdateUI = false;
+                    players.forEach(p => {
+                        if (p.onPitch) {
+                            p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + deltaSec;
+                            const timeBadge = document.getElementById(`time-badge-${p.id}`);
+                            if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
+                            needUpdateUI = true;
+                        }
+                    });
+                    if(needUpdateUI) savePlayers();
+                }
+            }
+        });
 
         function updateTimerDisplay() {
             const min = Math.floor(matchSeconds / 60), sec = matchSeconds % 60;
@@ -415,20 +451,34 @@
 
         function toggleTimer() {
             if (isRunning) { 
-                clearInterval(timerInterval); btnPlayPause.textContent = '▶'; btnPlayPause.className = 'btn-icon btn-play'; savePlayers(); 
+                clearInterval(timerInterval); 
+                btnPlayPause.textContent = '▶'; 
+                btnPlayPause.className = 'btn-icon btn-play'; 
+                savePlayers(); 
+                releaseWakeLock();
             } else { 
+                requestWakeLock();
+                lastTickTime = Date.now();
                 timerInterval = setInterval(() => { 
-                    matchSeconds++; updateTimerDisplay(); 
-                    let needUpdateUI = false;
-                    players.forEach(p => {
-                        if (p.onPitch) {
-                            p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + 1;
-                            const timeBadge = document.getElementById(`time-badge-${p.id}`);
-                            if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
-                            needUpdateUI = true;
-                        }
-                    });
-                    if(needUpdateUI && matchSeconds % 5 === 0) savePlayers();
+                    const now = Date.now();
+                    const deltaSec = Math.floor((now - lastTickTime) / 1000);
+                    
+                    if (deltaSec > 0) {
+                        matchSeconds += deltaSec; 
+                        lastTickTime += deltaSec * 1000;
+                        updateTimerDisplay(); 
+                        
+                        let needUpdateUI = false;
+                        players.forEach(p => {
+                            if (p.onPitch) {
+                                p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + deltaSec;
+                                const timeBadge = document.getElementById(`time-badge-${p.id}`);
+                                if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
+                                needUpdateUI = true;
+                            }
+                        });
+                        if(needUpdateUI && matchSeconds % 5 === 0) savePlayers(); // Lưu đĩa cứng mỗi 5s
+                    }
                 }, 1000); 
                 btnPlayPause.textContent = '⏸'; btnPlayPause.className = 'btn-icon btn-pause'; 
             }
@@ -447,7 +497,7 @@
             }
         }
 
-        // --- CẦU THỦ & LOCAL STORAGE ---
+        // --- CẦU THỦ & BẢNG THỐNG KÊ MÀU SẮC ---
         const PLAYERS_KEY = 'saBanBongDa_Players';
         let players = []; 
         const playerListEl = document.getElementById('playerList');
@@ -486,9 +536,49 @@
                 renderBench();
             }
         }
+        function clearAllPlayers() {
+            if(players.length === 0) return;
+            if(confirm("Xóa TOÀN BỘ danh sách cầu thủ?")) { 
+                players = []; savePlayers(); 
+                document.querySelectorAll('.player-token').forEach(t => t.remove()); 
+                renderBench(); 
+            }
+        }
+
+        function updatePitchStats() {
+            let counts = { red: 0, blue: 0, yellow: 0, white: 0 };
+            players.filter(p => p.onPitch).forEach(p => {
+                if(p.tags && p.tags.length > 0) {
+                    p.tags.forEach(t => {
+                        if(counts[t] !== undefined) counts[t]++;
+                    });
+                }
+            });
+
+            document.getElementById('count-red').textContent = counts.red;
+            document.getElementById('count-blue').textContent = counts.blue;
+            document.getElementById('count-yellow').textContent = counts.yellow;
+            document.getElementById('count-white').textContent = counts.white;
+
+            const statsPanel = document.getElementById('miniStatsPanel');
+            const totalPlayersOnPitch = players.filter(p => p.onPitch).length;
+            
+            // Lỗi khi: (Ít hơn 2 Đỏ VÀ ít hơn 1 Xanh) HOẶC (Nhiều hơn 1 Trắng)
+            if (totalPlayersOnPitch > 0) {
+                if ((counts.red < 2 && counts.blue < 1) || counts.white > 1) {
+                    statsPanel.classList.add('error-state');
+                } else {
+                    statsPanel.classList.remove('error-state');
+                }
+            } else {
+                statsPanel.classList.remove('error-state'); 
+            }
+        }
 
         function renderBench() {
             playerListEl.innerHTML = '';
+            updatePitchStats(); 
+
             const benchedPlayers = players.filter(p => !p.onPitch);
 
             if (benchedPlayers.length === 0) {
@@ -619,6 +709,3 @@
     </script>
 </body>
 </html>
-
-
-```
