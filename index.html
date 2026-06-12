@@ -1,0 +1,624 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sa Bàn Bóng Đá - MN Misa FC</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --pitch-dark: #2e7d32;
+            --pitch-light: #388e3c;
+            --line-color: rgba(255, 255, 255, 0.85);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --opponent-color: #4b5563;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+            transition: background-color 0.3s;
+        }
+
+        /* =========================================
+           INTRO SCREEN (MÀN HÌNH CHỜ MÀU HỒNG)
+           ========================================= */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Gradient màu hồng ấn tượng */
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        #intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .intro-logo {
+            font-size: 60px;
+            margin-bottom: 10px;
+            animation: bounceIn 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        .intro-text-main {
+            font-size: 38px;
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+            opacity: 0;
+        }
+        .intro-text-sub {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s forwards;
+            opacity: 0;
+            color: #fff0f5;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0) translateY(-100px); opacity: 0; }
+            50% { transform: scale(1.2) translateY(20px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* =========================================
+           TOP HALF: PITCH AREA
+           ========================================= */
+        .pitch-wrapper { height: 50vh; padding: 10px; display: flex; justify-content: center; align-items: center; background: #1e293b; position: relative; z-index: 1; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        body.fullscreen-mode .pitch-wrapper { height: 100vh; padding: 0; background: #0f172a; }
+        body.fullscreen-mode .pitch { border-radius: 0; border-width: 0; border-bottom: 2px solid var(--line-color); border-top: 2px solid var(--line-color); }
+
+        .pitch {
+            width: 100%; height: 100%; max-width: 1000px;
+            background: repeating-linear-gradient(90deg, var(--pitch-dark), var(--pitch-dark) 10%, var(--pitch-light) 10%, var(--pitch-light) 20%);
+            border: 2px solid var(--line-color); position: relative; border-radius: 6px; touch-action: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); overflow: hidden; transition: all 0.4s ease;
+        }
+
+        body.fullscreen-mode .pitch { background: repeating-linear-gradient(0deg, var(--pitch-dark), var(--pitch-dark) 10%, var(--pitch-light) 10%, var(--pitch-light) 20%); }
+
+        #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        #drawCanvas.draw-mode { z-index: 50; pointer-events: auto; cursor: crosshair; }
+
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; font-weight: 900; color: rgba(255, 255, 255, 0.15); text-transform: uppercase; letter-spacing: 2px; white-space: nowrap; pointer-events: none; z-index: 2; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: transform 0.4s; }
+        body.fullscreen-mode .watermark { transform: translate(-50%, -50%) rotate(-90deg); }
+
+        /* Vạch sân */
+        .center-line { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background-color: var(--line-color); transform: translateX(-50%); z-index: 1; }
+        .center-circle { position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 2px solid var(--line-color); border-radius: 50%; transform: translate(-50%, -50%); z-index: 1; }
+        .center-dot { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background-color: var(--line-color); border-radius: 50%; transform: translate(-50%, -50%); z-index: 1; }
+        .penalty-area.left { position: absolute; height: 54%; width: 15%; border: 2px solid var(--line-color); border-left: none; top: 23%; left: 0; z-index: 1; }
+        .goal-area.left { position: absolute; height: 30%; width: 6%; border: 2px solid var(--line-color); border-left: none; top: 35%; left: 0; z-index: 1; }
+        .penalty-area.right { position: absolute; height: 54%; width: 15%; border: 2px solid var(--line-color); border-right: none; top: 23%; right: 0; z-index: 1; }
+        .goal-area.right { position: absolute; height: 30%; width: 6%; border: 2px solid var(--line-color); border-right: none; top: 35%; right: 0; z-index: 1; }
+
+        body.fullscreen-mode .center-line { top: 50%; left: 0; width: 100%; height: 2px; transform: translateY(-50%); }
+        body.fullscreen-mode .penalty-area.left { top: 0; left: 23%; width: 54%; height: 15%; border: 2px solid var(--line-color); border-top: none; }
+        body.fullscreen-mode .goal-area.left { top: 0; left: 35%; width: 30%; height: 6%; border: 2px solid var(--line-color); border-top: none; }
+        body.fullscreen-mode .penalty-area.right { top: auto; bottom: 0; left: 23%; width: 54%; height: 15%; border: 2px solid var(--line-color); border-bottom: none; }
+        body.fullscreen-mode .goal-area.right { top: auto; bottom: 0; left: 35%; width: 30%; height: 6%; border: 2px solid var(--line-color); border-bottom: none; }
+
+        .btn-floating-fullscreen { position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.6); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 1000; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(2px); transition: 0.3s; }
+        body.fullscreen-mode .btn-floating-fullscreen { background: rgba(239, 68, 68, 0.9); border-color: transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
+        /* --- CÁC ĐỐI TƯỢNG --- */
+        .draggable-item { position: absolute; cursor: grab; transform: translate(-50%, -50%); user-select: none; z-index: 10; transition: left 0.4s, top 0.4s; }
+        .draggable-item.dragging { opacity: 0.9; transform: translate(-50%, -50%) scale(1.3); z-index: 100; cursor: grabbing; transition: none; }
+        
+        .player-token { width: 38px; height: 38px; background: #111827; color: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); }
+        .token-tags { display: flex; gap: 2px; margin-top: 1px; }
+        .token-tag-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .token-time { position: absolute; bottom: -18px; background: rgba(0,0,0,0.85); color: #4ade80; font-size: 9px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; font-weight: bold;}
+
+        .football-token { width: 20px; height: 20px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 20; }
+        .opponent-token { width: 34px; height: 34px; background: var(--opponent-color); color: white; border-radius: 5px; display: flex; justify-content: center; align-items: center; font-size: 16px; box-shadow: 0 3px 6px rgba(0,0,0,0.4); border: 2px solid #9ca3af; }
+
+        /* =========================================
+           BOTTOM HALF: CONTROLS AREA
+           ========================================= */
+        .controls-container { height: 50vh; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 30; display: flex; flex-direction: column; padding: 10px 12px; gap: 8px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        body.fullscreen-mode .controls-container { transform: translateY(100%); }
+
+        .timer-panel { display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .timer-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .half-selector { display: flex; background: #e2e8f0; border-radius: 6px; padding: 2px; }
+        .half-btn { background: transparent; border: none; padding: 4px 10px; font-size: 11px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .half-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .time-setting { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); font-weight: bold;}
+        .time-setting input { width: 30px; padding: 2px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; font-weight: bold;}
+        .timer-main-controls { display: flex; align-items: center; gap: 15px; justify-content: center; }
+        .timer-display { font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--primary); width: 80px; text-align: center; line-height: 1; }
+        .timer-display.overtime { color: var(--danger); }
+        .timer-buttons { display: flex; gap: 10px; }
+        .btn-icon { width: 34px; height: 34px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-play { background: var(--success); }
+        .btn-pause { background: var(--warning); }
+        .btn-new-match { background: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+
+        .tactical-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-top: 5px;}
+        .tactical-tools::-webkit-scrollbar { display: none; }
+        .btn-tool { background: #f1f5f9; color: var(--text-main); border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+        .btn-tool.active-draw { background: var(--warning); color: white; border-color: var(--warning); }
+        .btn-tool:active { transform: scale(0.96); }
+
+        .action-row { display: flex; gap: 8px; align-items: center; margin-top: 5px;}
+        .input-group { display: flex; flex: 1; gap: 5px; }
+        .input-group input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; outline: none; }
+        .input-group input:focus { border-color: var(--primary); }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 0 12px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+        .btn-add-opponent { background: var(--opponent-color); color: white; border: none; padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+        .color-picker { display: flex; align-items: center; gap: 12px; padding-bottom: 5px; border-bottom: 1px solid #f1f5f9; }
+        .color-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .swatches { display: flex; gap: 10px; }
+        .swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; position: relative; }
+        .swatch.active { transform: scale(1.15); border-color: #1f2937; }
+        .swatch.active::after { content: "✓"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 10px; font-weight: bold; }
+        .tag-red { background: #ef4444; }
+        .tag-blue { background: #3b82f6; }
+        .tag-yellow { background: #eab308; }
+        .tag-white { background: #ffffff; border: 1px solid #d1d5db; }
+        .tag-white.active::after { color: #1f2937; }
+
+        /* Bench */
+        .bench-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .bench-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .bench-title { font-size: 13px; font-weight: 700; }
+        
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; align-content: start; }
+        .player-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 4px 6px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .btn-remove-player { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--danger); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; line-height: 1; border: 1px solid white; z-index: 5; }
+        .card-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-tags { display: flex; gap: 3px; margin-bottom: 4px;}
+        .card-tag { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+        .card-time { font-size: 9px; font-weight: bold; color: #10b981; background: #d1fae5; padding: 2px 6px; border-radius: 10px; }
+        .empty-bench { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <!-- MÀN HÌNH INTRO MÀU HỒNG -->
+    <div id="intro-screen">
+        <div class="intro-logo">🏆</div>
+        <div class="intro-text-main">MN Misa FC</div>
+        <div class="intro-text-sub">Vô địch DNOL st26</div>
+    </div>
+
+    <div class="pitch-wrapper" id="pitchWrapper">
+        <div class="pitch" id="pitch">
+            <div class="center-line"></div>
+            <div class="center-circle"></div>
+            <div class="center-dot"></div>
+            <div class="penalty-area left"></div>
+            <div class="goal-area left"></div>
+            <div class="penalty-area right"></div>
+            <div class="goal-area right"></div>
+            
+            <div class="watermark">MN MISA FC</div>
+            <canvas id="drawCanvas"></canvas>
+            
+            <div class="draggable-item football-token" id="match-ball" style="left: 50%; top: 50%;">⚽️</div>
+            <button id="btnFullscreenToggle" class="btn-floating-fullscreen" onclick="toggleFullscreen()">⤢ Xoay dọc toàn màn</button>
+        </div>
+    </div>
+
+    <div class="controls-container">
+        
+        <div class="timer-panel">
+            <div class="timer-top-row">
+                <div class="half-selector">
+                    <button class="half-btn active" id="btnHalf1" onclick="setHalf(1)">Hiệp 1</button>
+                    <button class="half-btn" id="btnHalf2" onclick="setHalf(2)">Hiệp 2</button>
+                </div>
+                <div class="time-setting">
+                    <span>1 Hiệp:</span>
+                    <input type="number" id="halfTimeInput" value="30" min="1" max="90"><span>'</span>
+                </div>
+            </div>
+
+            <div class="timer-main-controls">
+                <div class="timer-display" id="matchTimer">00:00</div>
+                <div class="timer-buttons">
+                    <button class="btn-icon btn-play" id="btnPlayPause" onclick="toggleTimer()">▶</button>
+                </div>
+                <button class="btn-new-match" onclick="resetMatch()">⛔ Trận Mới</button>
+            </div>
+        </div>
+
+        <div class="tactical-tools">
+            <button class="btn-tool" id="btnToggleDraw" onclick="toggleDrawMode()">🖌 Bút vẽ chiến thuật</button>
+            <button class="btn-tool" onclick="clearDrawings()">🧹 Xóa nét</button>
+            <button class="btn-tool" onclick="saveFormation()">💾 Lưu đội hình</button>
+            <button class="btn-tool" onclick="loadFormation()">📂 Tải đội hình</button>
+        </div>
+
+        <div class="action-row">
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="Tên cầu thủ...">
+                <button class="btn-add" onclick="addPlayer()">Thêm</button>
+            </div>
+            <button class="btn-add-opponent" onclick="addOpponent()">👤 Địch</button>
+        </div>
+
+        <div class="color-picker">
+            <span class="color-label">Màu:</span>
+            <div class="swatches">
+                <div class="swatch tag-red" data-color="red" onclick="toggleColor(this)"></div>
+                <div class="swatch tag-blue" data-color="blue" onclick="toggleColor(this)"></div>
+                <div class="swatch tag-yellow" data-color="yellow" onclick="toggleColor(this)"></div>
+                <div class="swatch tag-white" data-color="white" onclick="toggleColor(this)"></div>
+            </div>
+        </div>
+
+        <div class="bench-area">
+            <div class="bench-header">
+                <span class="bench-title">Dự bị <span style="font-weight: normal; color: gray; font-size: 11px;">(Đang nghỉ)</span></span>
+            </div>
+            <div class="player-grid" id="playerList"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- XỬ LÝ MÀN HÌNH INTRO ---
+        window.addEventListener('load', () => {
+            const intro = document.getElementById('intro-screen');
+            // Sau 2 giây (2000ms), bắt đầu mờ dần
+            setTimeout(() => {
+                intro.classList.add('hidden');
+                // Chờ hiệu ứng mờ kết thúc (0.5s) rồi xóa hoàn toàn khỏi layout
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                }, 500);
+            }, 2000);
+
+            // Tải dữ liệu cũ
+            loadPlayers(); 
+            renderBench(); 
+            setTimeout(resizeCanvas, 100); 
+        });
+
+        // --- CÁC LOGIC SA BÀN BÊN DƯỚI GIỮ NGUYÊN ---
+        const pitch = document.getElementById('pitch');
+        const ball = document.getElementById('match-ball');
+        makeDraggable(ball);
+
+        // --- FULLSCREEN & HOÁN ĐỔI TỌA ĐỘ 90 ĐỘ ---
+        function toggleFullscreen() {
+            const isEnteringFullscreen = !document.body.classList.contains('fullscreen-mode');
+            const pitchRect = pitch.getBoundingClientRect();
+            const tokens = document.querySelectorAll('.draggable-item');
+            const newPositions = [];
+            
+            tokens.forEach(el => {
+                const currentPctX = (el.offsetLeft / pitchRect.width) * 100;
+                const currentPctY = (el.offsetTop / pitchRect.height) * 100;
+                newPositions.push({ el: el, newX: currentPctY, newY: currentPctX });
+            });
+
+            document.body.classList.toggle('fullscreen-mode');
+
+            const btn = document.getElementById('btnFullscreenToggle');
+            if(isEnteringFullscreen) {
+                btn.innerHTML = '❌ Thu nhỏ lại';
+            } else {
+                btn.innerHTML = '⤢ Xoay dọc toàn màn';
+            }
+
+            newPositions.forEach(item => {
+                item.el.style.left = item.newX + '%';
+                item.el.style.top = item.newY + '%';
+            });
+
+            clearDrawings();
+            setTimeout(resizeCanvas, 400); 
+        }
+
+        // --- CANVAS LOGIC ---
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false, drawMode = false;
+        const btnToggleDraw = document.getElementById('btnToggleDraw');
+
+        function resizeCanvas() {
+            canvas.width = pitch.offsetWidth; canvas.height = pitch.offsetHeight;
+            ctx.strokeStyle = '#fde047'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function toggleDrawMode() {
+            drawMode = !drawMode;
+            if(drawMode) { btnToggleDraw.classList.add('active-draw'); btnToggleDraw.innerHTML = '✅ Đang vẽ...'; canvas.classList.add('draw-mode'); } 
+            else { btnToggleDraw.classList.remove('active-draw'); btnToggleDraw.innerHTML = '🖌 Bút vẽ chiến thuật'; canvas.classList.remove('draw-mode'); }
+        }
+        function clearDrawings() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = e.clientX, clientY = e.clientY;
+            if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+        function startDraw(e) { if(!drawMode) return; e.preventDefault(); isDrawing = true; const pos = getPointerPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
+        function draw(e) { if(!isDrawing || !drawMode) return; e.preventDefault(); const pos = getPointerPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
+        function stopDraw() { isDrawing = false; ctx.beginPath(); }
+        canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
+        canvas.addEventListener('touchstart', startDraw, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stopDraw);
+
+        function formatPlayerTime(totalSec) {
+            if(!totalSec) return "00:00";
+            const m = Math.floor(totalSec / 60); const s = totalSec % 60;
+            return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+        }
+
+        // --- QUẢN LÝ THỜI GIAN & HIỆP ĐẤU ---
+        let matchSeconds = 0, timerInterval = null, isRunning = false;
+        let currentHalf = 1;
+        const timerDisplay = document.getElementById('matchTimer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const halfTimeInput = document.getElementById('halfTimeInput');
+        const btnHalf1 = document.getElementById('btnHalf1');
+        const btnHalf2 = document.getElementById('btnHalf2');
+
+        function updateTimerDisplay() {
+            const min = Math.floor(matchSeconds / 60), sec = matchSeconds % 60;
+            timerDisplay.textContent = `${min < 10 ? '0'+min : min}:${sec < 10 ? '0'+sec : sec}`;
+            if (min >= (parseInt(halfTimeInput.value) || 30)) timerDisplay.classList.add('overtime');
+            else timerDisplay.classList.remove('overtime');
+        }
+
+        function setHalf(half) {
+            if(half === currentHalf) return;
+            if(confirm(`Chuyển sang Hiệp ${half}? Đồng hồ chính sẽ về 00:00.`)) {
+                if(isRunning) toggleTimer();
+                currentHalf = half;
+                if(half === 1) { btnHalf1.classList.add('active'); btnHalf2.classList.remove('active'); } 
+                else { btnHalf2.classList.add('active'); btnHalf1.classList.remove('active'); }
+                matchSeconds = 0; updateTimerDisplay();
+            }
+        }
+
+        function toggleTimer() {
+            if (isRunning) { 
+                clearInterval(timerInterval); btnPlayPause.textContent = '▶'; btnPlayPause.className = 'btn-icon btn-play'; savePlayers(); 
+            } else { 
+                timerInterval = setInterval(() => { 
+                    matchSeconds++; updateTimerDisplay(); 
+                    let needUpdateUI = false;
+                    players.forEach(p => {
+                        if (p.onPitch) {
+                            p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + 1;
+                            const timeBadge = document.getElementById(`time-badge-${p.id}`);
+                            if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
+                            needUpdateUI = true;
+                        }
+                    });
+                    if(needUpdateUI && matchSeconds % 5 === 0) savePlayers();
+                }, 1000); 
+                btnPlayPause.textContent = '⏸'; btnPlayPause.className = 'btn-icon btn-pause'; 
+            }
+            isRunning = !isRunning;
+        }
+
+        function resetMatch() {
+            if(confirm("TẠO TRẬN MỚI? Thời gian cá nhân sẽ xóa sạch về 0.")) {
+                if(isRunning) toggleTimer();
+                matchSeconds = 0; updateTimerDisplay(); clearDrawings();
+                currentHalf = 1; btnHalf1.classList.add('active'); btnHalf2.classList.remove('active');
+                players.forEach(p => { p.onPitch = false; p.totalSecondsPlayed = 0; });
+                document.querySelectorAll('.player-token, .opponent-token').forEach(t => t.remove());
+                ball.style.left = '50%'; ball.style.top = '50%';
+                renderBench(); savePlayers();
+            }
+        }
+
+        // --- CẦU THỦ & LOCAL STORAGE ---
+        const PLAYERS_KEY = 'saBanBongDa_Players';
+        let players = []; 
+        const playerListEl = document.getElementById('playerList');
+        const playerNameInput = document.getElementById('playerName');
+        const colorPriority = { 'red': 1, 'blue': 2, 'yellow': 3, 'white': 4 };
+        const colorClasses = { 'red': 'tag-red', 'blue': 'tag-blue', 'yellow': 'tag-yellow', 'white': 'tag-white' };
+        let selectedColors = new Set();
+
+        function savePlayers() { localStorage.setItem(PLAYERS_KEY, JSON.stringify(players)); }
+        function loadPlayers() { 
+            const stored = localStorage.getItem(PLAYERS_KEY); 
+            players = stored ? JSON.parse(stored) : []; 
+            players.forEach(p => { p.onPitch = false; if(p.totalSecondsPlayed === undefined) p.totalSecondsPlayed = 0; });
+        }
+
+        function toggleColor(el) {
+            const color = el.getAttribute('data-color');
+            if (selectedColors.has(color)) { selectedColors.delete(color); el.classList.remove('active'); } 
+            else { selectedColors.add(color); el.classList.add('active'); }
+        }
+        function resetColors() { selectedColors.clear(); document.querySelectorAll('.swatch').forEach(el => el.classList.remove('active')); }
+
+        function addPlayer() {
+            const name = playerNameInput.value.trim();
+            if (!name) return;
+            players.push({ id: Date.now().toString(), name: name, tags: Array.from(selectedColors), onPitch: false, totalSecondsPlayed: 0 });
+            savePlayers(); renderBench();
+            playerNameInput.value = ''; resetColors(); playerNameInput.focus();
+        }
+
+        function deletePlayerCompletely(id, event) {
+            event.stopPropagation();
+            if(confirm("Xóa VĨNH VIỄN cầu thủ này?")) {
+                players = players.filter(p => p.id !== id); savePlayers();
+                const token = document.getElementById(`token-${id}`); if(token) token.remove();
+                renderBench();
+            }
+        }
+
+        function renderBench() {
+            playerListEl.innerHTML = '';
+            const benchedPlayers = players.filter(p => !p.onPitch);
+
+            if (benchedPlayers.length === 0) {
+                if (players.length > 0) playerListEl.innerHTML = '<div class="empty-bench">Tất cả đang đá.</div>';
+                else playerListEl.innerHTML = '<div class="empty-bench">Chưa có cầu thủ.<br>Thêm ở trên nhé!</div>';
+                return;
+            }
+
+            const sortedPlayers = [...benchedPlayers].sort((a, b) => {
+                const valA = a.tags.length > 0 ? colorPriority[a.tags[0]] : 99;
+                const valB = b.tags.length > 0 ? colorPriority[b.tags[0]] : 99;
+                return valA - valB;
+            });
+
+            sortedPlayers.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.onclick = () => addToPitch(player);
+                let tagsHtml = player.tags.map(tag => `<div class="card-tag ${colorClasses[tag]}"></div>`).join('');
+                
+                card.innerHTML = `
+                    <div class="btn-remove-player" onclick="deletePlayerCompletely('${player.id}', event)">×</div>
+                    <div class="card-name" title="${player.name}">${player.name}</div>
+                    <div class="card-tags">${tagsHtml}</div>
+                    <div class="card-time">⏱ ${formatPlayerTime(player.totalSecondsPlayed)}</div>
+                `;
+                playerListEl.appendChild(card);
+            });
+        }
+
+        function addToPitch(player, leftPct = null, topPct = null) {
+            if(document.getElementById(`token-${player.id}`)) return;
+            player.onPitch = true; renderBench(); savePlayers();
+
+            const token = document.createElement('div');
+            token.className = 'draggable-item player-token';
+            token.id = `token-${player.id}`;
+            token.dataset.playerId = player.id;
+
+            const initial = player.name.substring(0, 2).toUpperCase();
+            let tagsHtml = player.tags.map(tag => `<div class="token-tag-dot ${colorClasses[tag]}"></div>`).join('');
+
+            token.innerHTML = `
+                <span>${initial}</span>
+                <div class="token-tags">${tagsHtml}</div>
+                <div class="token-time" id="time-badge-${player.id}">⏱ ${formatPlayerTime(player.totalSecondsPlayed)}</div>
+            `;
+
+            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; } 
+            else { const offsetX = Math.floor(Math.random() * 60) - 80; token.style.left = `calc(50% + ${offsetX}px)`; token.style.top = `50%`; }
+
+            pitch.appendChild(token); makeDraggable(token);
+        }
+
+        function addOpponent(leftPct = null, topPct = null) {
+            const token = document.createElement('div');
+            token.className = 'draggable-item opponent-token';
+            token.innerHTML = '👤';
+            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; } 
+            else { const offsetX = Math.floor(Math.random() * 60) + 40; const offsetY = Math.floor(Math.random() * 80) - 40; token.style.left = `calc(50% + ${offsetX}px)`; token.style.top = `calc(50% + ${offsetY}px)`; }
+            pitch.appendChild(token); makeDraggable(token);
+        }
+
+        // --- LƯU ĐỘI HÌNH ---
+        const FORMATION_KEY = 'saBan_Formation';
+        function saveFormation() {
+            const formation = [];
+            document.querySelectorAll('.draggable-item').forEach(el => {
+                const percentLeft = (el.offsetLeft / pitch.offsetWidth) * 100;
+                const percentTop = (el.offsetTop / pitch.offsetHeight) * 100;
+                if (el.classList.contains('player-token')) {
+                    const id = el.id.replace('token-', ''); formation.push({ type: 'player', id: id, x: percentLeft, y: percentTop });
+                } else if (el.classList.contains('opponent-token')) { formation.push({ type: 'opponent', x: percentLeft, y: percentTop });
+                } else if (el.classList.contains('football-token')) { formation.push({ type: 'ball', x: percentLeft, y: percentTop }); }
+            });
+            localStorage.setItem(FORMATION_KEY, JSON.stringify(formation)); alert("Đã lưu đội hình hiện tại thành công!");
+        }
+        function loadFormation() {
+            const stored = localStorage.getItem(FORMATION_KEY);
+            if (!stored) { alert("Chưa có đội hình nào được lưu!"); return; }
+            const formation = JSON.parse(stored);
+            players.forEach(p => p.onPitch = false); document.querySelectorAll('.player-token, .opponent-token').forEach(t => t.remove());
+            formation.forEach(item => {
+                if (item.type === 'ball') { ball.style.left = item.x + '%'; ball.style.top = item.y + '%'; } 
+                else if (item.type === 'opponent') { addOpponent(item.x, item.y); }
+                else if (item.type === 'player') { const player = players.find(p => p.id === item.id); if (player) addToPitch(player, item.x, item.y); }
+            });
+            renderBench(); alert("Đã tải lại đội hình!");
+        }
+
+        // --- DRAG & DROP ---
+        function makeDraggable(element) {
+            let isDragging = false; let lastTap = 0;
+            const removeHandler = (e) => {
+                if(drawMode) return; if (element.id === 'match-ball') return; 
+                if (element.classList.contains('player-token')) {
+                    const pid = element.dataset.playerId; const p = players.find(x => x.id === pid);
+                    if (p) { p.onPitch = false; renderBench(); savePlayers(); }
+                }
+                element.remove(); if(e) e.preventDefault();
+            };
+
+            element.addEventListener('touchend', function(e) {
+                if(drawMode) return; const tapLength = new Date().getTime() - lastTap;
+                if (tapLength < 300 && tapLength > 0) removeHandler(e);
+                lastTap = new Date().getTime(); if (isDragging) { isDragging = false; element.classList.remove('dragging'); }
+            });
+
+            element.addEventListener('dblclick', removeHandler);
+            element.addEventListener('touchstart', (e) => { if(drawMode) return; isDragging = true; element.classList.add('dragging'); }, {passive: true});
+            document.addEventListener('touchmove', (e) => { if (!isDragging || drawMode) return; e.preventDefault(); moveElement(element, e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+            element.addEventListener('mousedown', (e) => { if(drawMode) return; isDragging = true; element.classList.add('dragging'); });
+            document.addEventListener('mousemove', (e) => { if (!isDragging || drawMode) return; moveElement(element, e.clientX, e.clientY); });
+            document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; element.classList.remove('dragging'); } });
+            document.addEventListener('mouseleave', () => { if (isDragging) { isDragging = false; element.classList.remove('dragging'); } });
+        }
+
+        function moveElement(element, clientX, clientY) {
+            const pitchRect = pitch.getBoundingClientRect();
+            let newLeft = clientX - pitchRect.left; let newTop = clientY - pitchRect.top;
+            let boundOffset = element.classList.contains('football-token') ? 10 : 19;
+            let boundOffsetBottom = element.classList.contains('player-token') ? 25 : boundOffset;
+            newLeft = Math.max(boundOffset, Math.min(newLeft, pitchRect.width - boundOffset));
+            newTop = Math.max(boundOffset, Math.min(newTop, pitchRect.height - boundOffsetBottom));
+            element.style.left = newLeft + 'px'; element.style.top = newTop + 'px';
+        }
+
+    </script>
+</body>
+</html>
+
+
+```
