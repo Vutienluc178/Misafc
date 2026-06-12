@@ -19,6 +19,7 @@
             --success: #10b981;
             --warning: #f59e0b;
             --opponent-color: #4b5563;
+            --gk-color: #d97706;
         }
 
         * {
@@ -122,17 +123,49 @@
         body.fullscreen-mode .penalty-area.right { top: auto; bottom: 0; left: 23%; width: 54%; height: 15%; border: 2px solid var(--line-color); border-bottom: none; }
         body.fullscreen-mode .goal-area.right { top: auto; bottom: 0; left: 35%; width: 30%; height: 6%; border: 2px solid var(--line-color); border-bottom: none; }
 
+        /* CẢNH BÁO QUAN TRỌNG TRÊN SÂN (vi phạm quy định màu áo) */
+        .pitch-alert {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.95); color: white;
+            font-size: 13px; font-weight: 900; padding: 7px 16px; border-radius: 20px;
+            z-index: 999; white-space: nowrap; max-width: 95%; overflow: hidden; text-overflow: ellipsis;
+            border: 2px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: alertFlash 0.8s infinite alternate; pointer-events: none;
+        }
+        .pitch-alert.hidden { display: none; }
+        @keyframes alertFlash {
+            from { background: rgba(220, 38, 38, 0.95); box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+            to { background: rgba(153, 27, 27, 1); box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+        }
+        body.fullscreen-mode .pitch-alert { top: 60px; }
+
         .btn-floating-fullscreen { position: absolute; top: 15px; right: 15px; background: rgba(0, 0, 0, 0.6); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; z-index: 1000; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(2px); transition: 0.3s; }
         body.fullscreen-mode .btn-floating-fullscreen { background: rgba(239, 68, 68, 0.9); border-color: transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 
         /* --- CÁC ĐỐI TƯỢNG --- */
         .draggable-item { position: absolute; cursor: grab; transform: translate(-50%, -50%); user-select: none; z-index: 10; transition: left 0.4s, top 0.4s; }
         .draggable-item.dragging { opacity: 0.9; transform: translate(-50%, -50%) scale(1.3); z-index: 100; cursor: grabbing; transition: none; }
-        
+
         .player-token { width: 38px; height: 38px; background: #111827; color: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.3); }
+        .player-token.gk { background: var(--gk-color); border-color: rgba(255,255,255,0.7); }
         .token-tags { display: flex; gap: 2px; margin-top: 1px; }
         .token-tag-dot { width: 6px; height: 6px; border-radius: 50%; }
         .token-time { position: absolute; bottom: -18px; background: rgba(0,0,0,0.85); color: #4ade80; font-size: 9px; padding: 2px 5px; border-radius: 4px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; font-weight: bold;}
+
+        /* Badge vị trí trên token */
+        .tk-posbadge { position: absolute; top: -8px; right: -10px; font-size: 8px; font-weight: 900; color: white; padding: 1px 4px; border-radius: 6px; border: 1px solid white; pointer-events: none; line-height: 1.2; }
+        .pos-GK { background: var(--gk-color); }
+        .pos-DF { background: #2563eb; }
+        .pos-MF { background: #10b981; }
+        .pos-FW { background: #ef4444; }
+
+        /* Cảnh báo quá giờ thi đấu (cần thay người) */
+        .player-token.needs-sub { border-color: var(--danger); animation: subPulse 1s infinite; }
+        .player-token.needs-sub .token-time, .token-time.over { color: #f87171; }
+        @keyframes subPulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.85); }
+            100% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
 
         .football-token { width: 20px; height: 20px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 20; }
         .opponent-token { width: 34px; height: 34px; background: var(--opponent-color); color: white; border-radius: 5px; display: flex; justify-content: center; align-items: center; font-size: 16px; box-shadow: 0 3px 6px rgba(0,0,0,0.4); border: 2px solid #9ca3af; }
@@ -140,8 +173,9 @@
         /* =========================================
            BOTTOM HALF: CONTROLS AREA
            ========================================= */
-        .controls-container { height: 50vh; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 30; display: flex; flex-direction: column; padding: 10px 12px; gap: 8px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .controls-container { height: 50vh; background: var(--card-bg); border-top-left-radius: 16px; border-top-right-radius: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); z-index: 30; display: flex; flex-direction: column; padding: 10px 12px; gap: 8px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         body.fullscreen-mode .controls-container { transform: translateY(100%); }
+        .controls-container > * { flex-shrink: 0; }
 
         /* Bảng Thống Kê Màu Đặt Trên Cùng */
         .mini-stats-row { display: flex; align-items: center; justify-content: center; gap: 12px; background: #f8fafc; padding: 6px 10px; border-radius: 8px; border: 1px solid #e2e8f0; transition: all 0.3s; }
@@ -153,9 +187,28 @@
         .mini-stat-pill { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; color: var(--text-main); }
         .mini-color-dot { width: 10px; height: 10px; border-radius: 50%; }
 
+        /* BẢNG TỈ SỐ */
+        .score-panel { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: #0f172a; padding: 8px 10px; border-radius: 10px; color: white; }
+        .score-team { font-size: 11px; font-weight: 800; text-transform: uppercase; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .score-display { font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
+        .btn-goal { border: none; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700; color: white; cursor: pointer; white-space: nowrap; }
+        .btn-goal:active { transform: scale(0.95); }
+        .btn-goal.us { background: var(--success); }
+        .btn-goal.them { background: var(--danger); }
+        .btn-score-minus { width: 18px; height: 18px; border-radius: 50%; border: none; background: rgba(255,255,255,0.15); color: #cbd5e1; font-size: 12px; line-height: 1; cursor: pointer; }
+        .btn-log-toggle { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: white; border-radius: 8px; padding: 6px 9px; font-size: 13px; cursor: pointer; }
+
+        /* NHẬT KÝ TRẬN */
+        .match-log { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 120px; overflow-y: auto; padding: 6px 10px; font-size: 11.5px; }
+        .match-log.hidden { display: none; }
+        .log-item { padding: 3px 0; border-bottom: 1px dashed #e2e8f0; display: flex; gap: 6px; align-items: baseline; }
+        .log-item:last-child { border-bottom: none; }
+        .log-time { color: var(--primary); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .log-empty { color: var(--text-muted); font-style: italic; text-align: center; padding: 4px 0; }
+
         /* Timer Panel */
         .timer-panel { display: flex; flex-direction: column; gap: 8px; background: #f8fafc; padding: 8px 10px; border-radius: 10px; border: 1px solid #e2e8f0; }
-        .timer-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .timer-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 4px; }
         .half-selector { display: flex; background: #e2e8f0; border-radius: 6px; padding: 2px; }
         .half-btn { background: transparent; border: none; padding: 4px 10px; font-size: 11px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-radius: 4px; transition: 0.2s; }
         .half-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
@@ -170,6 +223,13 @@
         .btn-play { background: var(--success); }
         .btn-pause { background: var(--warning); }
         .btn-reset { background: var(--danger); font-size: 16px; font-weight: bold; }
+
+        /* SƠ ĐỒ CHIẾN THUẬT MẪU */
+        .template-row { display: flex; gap: 6px; align-items: center; }
+        .template-row select { flex: 1; padding: 7px 6px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; font-weight: 600; background: white; color: var(--text-main); outline: none; }
+        .template-row select:focus { border-color: var(--primary); }
+        .btn-apply-template { background: var(--primary); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .btn-apply-template:active { transform: scale(0.96); }
 
         /* TACTICAL TOOLS */
         .tactical-tools { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; margin-top: 5px; transition: all 0.3s ease;}
@@ -186,10 +246,13 @@
         }
         .pitch-wrapper .tactical-tools .btn-tool { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.2); }
 
-        .action-row { display: flex; gap: 8px; align-items: center; margin-top: 5px;}
+        .action-row { display: flex; gap: 6px; align-items: center; margin-top: 5px;}
         .input-group { display: flex; flex: 1; gap: 5px; }
-        .input-group input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; outline: none; }
+        .input-group input { padding: 8px 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; outline: none; }
         .input-group input:focus { border-color: var(--primary); }
+        #playerName { flex: 1; min-width: 0; }
+        #playerNumber { width: 44px; text-align: center; }
+        #playerPos { padding: 8px 4px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 12px; font-weight: 600; background: white; outline: none; }
         .btn-add { background: var(--primary); color: white; border: none; padding: 0 12px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
         .btn-add-opponent { background: var(--opponent-color); color: white; border: none; padding: 8px 10px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 
@@ -206,19 +269,38 @@
         .tag-white.active::after { color: #1f2937; }
 
         /* Bench */
-        .bench-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .bench-area { display: flex; flex-direction: column; min-height: 120px; }
         .bench-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .bench-title { font-size: 13px; font-weight: 700; }
         .btn-delete-all { background: transparent; color: var(--danger); border: 1px solid var(--danger); border-radius: 4px; padding: 2px 8px; font-size: 11px; cursor: pointer; }
-        
-        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; overflow-y: auto; padding-bottom: 20px; align-content: start; }
+
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; padding-bottom: 20px; align-content: start; }
         .player-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 4px 6px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .player-card.gk-card { background: #fffbeb; border-color: #fcd34d; }
         .btn-remove-player { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--danger); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; line-height: 1; border: 1px solid white; z-index: 5; }
         .card-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-pos-pill { font-size: 8px; font-weight: 900; color: white; padding: 1px 5px; border-radius: 6px; margin-bottom: 3px; }
         .card-tags { display: flex; gap: 3px; margin-bottom: 4px;}
         .card-tag { width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
         .card-time { font-size: 9px; font-weight: bold; color: #10b981; background: #d1fae5; padding: 2px 6px; border-radius: 10px; }
+        .card-time.over { color: #b91c1c; background: #fee2e2; }
         .empty-bench { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+
+        /* =========================================
+           MODAL DÙNG CHUNG
+           ========================================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.hidden { display: none; }
+        .modal-card { background: white; border-radius: 14px; width: 100%; max-width: 360px; max-height: 70vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.4); overflow: hidden; }
+        .modal-title { font-size: 14px; font-weight: 800; padding: 12px 14px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+        .modal-body { padding: 10px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .modal-close { margin: 10px 14px 14px; background: #e2e8f0; border: none; border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 700; color: var(--text-main); cursor: pointer; }
+        .modal-pick-btn { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .modal-pick-btn:active { background: #e2e8f0; }
+        .modal-pick-btn.skip { color: var(--text-muted); font-style: italic; }
+        .slot-row { display: flex; align-items: center; gap: 6px; }
+        .slot-row .slot-name { flex: 1; font-size: 13px; font-weight: 600; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 10px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .slot-row .slot-del { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; border-radius: 8px; padding: 9px 10px; font-size: 13px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -239,26 +321,41 @@
             <div class="goal-area left"></div>
             <div class="penalty-area right"></div>
             <div class="goal-area right"></div>
-            
+
+            <div class="pitch-alert hidden" id="pitchAlert"></div>
             <div class="watermark">MN MISA FC</div>
             <div class="watermark-bottom">Vũ Tiến Lực 0969068849</div>
             <canvas id="drawCanvas"></canvas>
-            
+
             <div class="draggable-item football-token" id="match-ball" style="left: 50%; top: 50%;">⚽️</div>
             <button id="btnFullscreenToggle" class="btn-floating-fullscreen" onclick="toggleFullscreen()">⤢ Xoay dọc toàn màn</button>
         </div>
     </div>
 
     <div class="controls-container" id="controlsContainer">
-        
+
         <!-- BẢNG ĐẾM MÀU -->
         <div class="mini-stats-row" id="miniStatsPanel">
             <div class="error-icon" title="Cảnh báo: Không đúng số lượng theo màu quy định!">❌</div>
+            <span id="statsErrorMsg" style="display:none; font-size:11px; font-weight:800; color:var(--danger);"></span>
             <div class="mini-stat-pill"><div class="mini-color-dot tag-red"></div><span id="count-red">0</span></div>
             <div class="mini-stat-pill"><div class="mini-color-dot tag-blue"></div><span id="count-blue">0</span></div>
             <div class="mini-stat-pill"><div class="mini-color-dot tag-yellow"></div><span id="count-yellow">0</span></div>
             <div class="mini-stat-pill"><div class="mini-color-dot tag-white"></div><span id="count-white">0</span></div>
         </div>
+
+        <!-- BẢNG TỈ SỐ + NHẬT KÝ -->
+        <div class="score-panel">
+            <button class="btn-goal us" onclick="goalUs()">⚽ Misa</button>
+            <div class="score-display">
+                <button class="btn-score-minus" onclick="adjustScore('us', -1)">−</button>
+                <span id="scoreUs">0</span><span>-</span><span id="scoreThem">0</span>
+                <button class="btn-score-minus" onclick="adjustScore('them', -1)">−</button>
+            </div>
+            <button class="btn-goal them" onclick="goalThem()">Địch ⚽</button>
+            <button class="btn-log-toggle" onclick="toggleLog()" title="Nhật ký trận đấu">📜</button>
+        </div>
+        <div class="match-log hidden" id="matchLogPanel"></div>
 
         <div class="timer-panel">
             <div class="timer-top-row">
@@ -269,6 +366,10 @@
                 <div class="time-setting">
                     <span>1 Hiệp:</span>
                     <input type="number" id="halfTimeInput" value="30" min="1" max="90"><span>'</span>
+                </div>
+                <div class="time-setting" title="Cầu thủ đá quá số phút này sẽ nhấp nháy đỏ - nên thay người">
+                    <span>⚠️ Thay:</span>
+                    <input type="number" id="subThresholdInput" value="15" min="1" max="90" onchange="checkSubAlerts(); renderBench();"><span>'</span>
                 </div>
             </div>
 
@@ -281,16 +382,34 @@
             </div>
         </div>
 
+        <!-- SƠ ĐỒ CHIẾN THUẬT MẪU -->
+        <div class="template-row">
+            <select id="pitchType" onchange="populateTemplates()">
+                <option value="7">Sân 7</option>
+                <option value="11">Sân 11</option>
+            </select>
+            <select id="templateSelect"></select>
+            <button class="btn-apply-template" onclick="applyTemplate()">⚡ Xếp sơ đồ</button>
+        </div>
+
         <div class="tactical-tools" id="tacticalTools">
             <button class="btn-tool" id="btnToggleDraw" onclick="toggleDrawMode()">🖌 Bút vẽ chiến thuật</button>
             <button class="btn-tool" onclick="clearDrawings()">🧹 Xóa nét</button>
             <button class="btn-tool" onclick="saveFormation()">💾 Lưu đội hình</button>
-            <button class="btn-tool" onclick="loadFormation()">📂 Tải đội hình</button>
+            <button class="btn-tool" onclick="openFormationList()">📂 Tải đội hình</button>
         </div>
 
         <div class="action-row" id="actionRow">
             <div class="input-group">
                 <input type="text" id="playerName" placeholder="Tên cầu thủ...">
+                <input type="number" id="playerNumber" placeholder="Số" min="1" max="99">
+                <select id="playerPos">
+                    <option value="">Vị trí</option>
+                    <option value="GK">GK</option>
+                    <option value="DF">DF</option>
+                    <option value="MF">MF</option>
+                    <option value="FW">FW</option>
+                </select>
                 <button class="btn-add" onclick="addPlayer()">Thêm</button>
             </div>
             <button class="btn-add-opponent" onclick="addOpponent()">👤 Địch</button>
@@ -308,10 +427,19 @@
 
         <div class="bench-area">
             <div class="bench-header">
-                <span class="bench-title">Dự bị <span style="font-weight: normal; color: gray; font-size: 11px;">(Đang nghỉ)</span></span>
+                <span class="bench-title">Dự bị <span style="font-weight: normal; color: gray; font-size: 11px;">(đá ít nhất xếp trước)</span></span>
                 <button class="btn-delete-all" onclick="clearAllPlayers()">Xóa hết DS</button>
             </div>
             <div class="player-grid" id="playerList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DÙNG CHUNG -->
+    <div class="modal-overlay hidden" id="appModal">
+        <div class="modal-card">
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-body" id="modalBody"></div>
+            <button class="modal-close" onclick="closeModal()">Đóng</button>
         </div>
     </div>
 
@@ -324,9 +452,13 @@
                 setTimeout(() => { intro.style.display = 'none'; }, 500);
             }, 2000);
 
-            loadPlayers(); 
-            renderBench(); 
-            setTimeout(resizeCanvas, 100); 
+            loadPlayers();
+            loadMatchState();
+            renderBench();
+            renderScore();
+            renderLog();
+            populateTemplates();
+            setTimeout(resizeCanvas, 100);
 
             // Phục hồi lại state hiển thị thời gian nếu trước đó đang chạy
             if(matchSeconds > 0) updateTimerDisplay();
@@ -342,7 +474,7 @@
             const pitchRect = pitch.getBoundingClientRect();
             const tokens = document.querySelectorAll('.draggable-item');
             const newPositions = [];
-            
+
             tokens.forEach(el => {
                 const currentPctX = (el.offsetLeft / pitchRect.width) * 100;
                 const currentPctY = (el.offsetTop / pitchRect.height) * 100;
@@ -368,7 +500,7 @@
             });
 
             clearDrawings();
-            setTimeout(resizeCanvas, 400); 
+            setTimeout(resizeCanvas, 400);
         }
 
         // --- CANVAS LOGIC ---
@@ -385,7 +517,7 @@
 
         function toggleDrawMode() {
             drawMode = !drawMode;
-            if(drawMode) { btnToggleDraw.classList.add('active-draw'); btnToggleDraw.innerHTML = '✅ Đang vẽ...'; canvas.classList.add('draw-mode'); } 
+            if(drawMode) { btnToggleDraw.classList.add('active-draw'); btnToggleDraw.innerHTML = '✅ Đang vẽ...'; canvas.classList.add('draw-mode'); }
             else { btnToggleDraw.classList.remove('active-draw'); btnToggleDraw.innerHTML = '🖌 Bút vẽ chiến thuật'; canvas.classList.remove('draw-mode'); }
         }
         function clearDrawings() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
@@ -417,8 +549,11 @@
         const timerDisplay = document.getElementById('matchTimer');
         const btnPlayPause = document.getElementById('btnPlayPause');
         const halfTimeInput = document.getElementById('halfTimeInput');
+        const subThresholdInput = document.getElementById('subThresholdInput');
         const btnHalf1 = document.getElementById('btnHalf1');
         const btnHalf2 = document.getElementById('btnHalf2');
+
+        function getSubThresholdSec() { return (parseInt(subThresholdInput.value) || 15) * 60; }
 
         // Yêu cầu giữ màn hình sáng
         async function requestWakeLock() {
@@ -428,10 +563,35 @@
             if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); }
         }
 
+        function tickPlayers(deltaSec) {
+            let needUpdateUI = false;
+            players.forEach(p => {
+                if (p.onPitch) {
+                    p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + deltaSec;
+                    const timeBadge = document.getElementById(`time-badge-${p.id}`);
+                    if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
+                    needUpdateUI = true;
+                }
+            });
+            checkSubAlerts();
+            return needUpdateUI;
+        }
+
+        // --- CẢNH BÁO THAY NGƯỜI THEO THỜI GIAN ---
+        function checkSubAlerts() {
+            const threshold = getSubThresholdSec();
+            players.forEach(p => {
+                const token = document.getElementById(`token-${p.id}`);
+                if (!token) return;
+                const over = (p.totalSecondsPlayed || 0) >= threshold;
+                token.classList.toggle('needs-sub', over);
+            });
+        }
+
         // Khắc phục lỗi khi tắt màn hình điện thoại
         document.addEventListener('visibilitychange', () => {
             if (wakeLock !== null && document.visibilityState === 'visible') { requestWakeLock(); }
-            
+
             if(isRunning && document.visibilityState === 'visible') {
                 const now = Date.now();
                 const deltaSec = Math.floor((now - lastTickTime) / 1000);
@@ -439,16 +599,7 @@
                     matchSeconds += deltaSec;
                     lastTickTime += deltaSec * 1000;
                     updateTimerDisplay();
-                    let needUpdateUI = false;
-                    players.forEach(p => {
-                        if (p.onPitch) {
-                            p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + deltaSec;
-                            const timeBadge = document.getElementById(`time-badge-${p.id}`);
-                            if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
-                            needUpdateUI = true;
-                        }
-                    });
-                    if(needUpdateUI) savePlayers();
+                    if(tickPlayers(deltaSec)) savePlayers();
                 }
             }
         });
@@ -465,76 +616,183 @@
             if(confirm(`Chuyển sang Hiệp ${half}? Đồng hồ chính sẽ về 00:00.`)) {
                 if(isRunning) toggleTimer();
                 currentHalf = half;
-                if(half === 1) { btnHalf1.classList.add('active'); btnHalf2.classList.remove('active'); } 
+                if(half === 1) { btnHalf1.classList.add('active'); btnHalf2.classList.remove('active'); }
                 else { btnHalf2.classList.add('active'); btnHalf1.classList.remove('active'); }
                 matchSeconds = 0; updateTimerDisplay();
+                logEvent('⏱', `Bắt đầu Hiệp ${half}`);
             }
         }
 
         function toggleTimer() {
-            if (isRunning) { 
-                clearInterval(timerInterval); btnPlayPause.textContent = '▶'; btnPlayPause.className = 'btn-icon btn-play'; savePlayers(); 
+            if (isRunning) {
+                clearInterval(timerInterval); btnPlayPause.textContent = '▶'; btnPlayPause.className = 'btn-icon btn-play'; savePlayers();
                 releaseWakeLock();
-            } else { 
+            } else {
                 requestWakeLock();
                 lastTickTime = Date.now();
-                timerInterval = setInterval(() => { 
+                timerInterval = setInterval(() => {
                     const now = Date.now();
                     const deltaSec = Math.floor((now - lastTickTime) / 1000);
-                    
+
                     if (deltaSec > 0) {
-                        matchSeconds += deltaSec; 
+                        matchSeconds += deltaSec;
                         lastTickTime += deltaSec * 1000;
-                        updateTimerDisplay(); 
-                        
-                        let needUpdateUI = false;
-                        players.forEach(p => {
-                            if (p.onPitch) {
-                                p.totalSecondsPlayed = (p.totalSecondsPlayed || 0) + deltaSec;
-                                const timeBadge = document.getElementById(`time-badge-${p.id}`);
-                                if(timeBadge) timeBadge.textContent = `⏱ ${formatPlayerTime(p.totalSecondsPlayed)}`;
-                                needUpdateUI = true;
-                            }
-                        });
+                        updateTimerDisplay();
+                        const needUpdateUI = tickPlayers(deltaSec);
                         if(needUpdateUI && matchSeconds % 5 === 0) savePlayers(); // Lưu đĩa cứng mỗi 5s
                     }
-                }, 1000); 
-                btnPlayPause.textContent = '⏸'; btnPlayPause.className = 'btn-icon btn-pause'; 
+                }, 1000);
+                btnPlayPause.textContent = '⏸'; btnPlayPause.className = 'btn-icon btn-pause';
             }
             isRunning = !isRunning;
         }
 
         function resetMatch() {
-            if(confirm("TẠO TRẬN MỚI? Thời gian cá nhân sẽ xóa sạch về 0.")) {
+            if(confirm("TẠO TRẬN MỚI? Tỉ số, nhật ký và thời gian cá nhân sẽ xóa sạch về 0.")) {
                 if(isRunning) toggleTimer();
                 matchSeconds = 0; updateTimerDisplay(); clearDrawings();
                 currentHalf = 1; btnHalf1.classList.add('active'); btnHalf2.classList.remove('active');
                 players.forEach(p => { p.onPitch = false; p.totalSecondsPlayed = 0; });
                 document.querySelectorAll('.player-token, .opponent-token').forEach(t => t.remove());
                 ball.style.left = '50%'; ball.style.top = '50%';
+                scoreUs = 0; scoreThem = 0; matchLog = [];
+                renderScore(); renderLog(); saveMatchState();
                 renderBench(); savePlayers();
             }
         }
 
+        // --- TỈ SỐ + NHẬT KÝ TRẬN ĐẤU ---
+        const MATCH_KEY = 'saBan_MatchState';
+        let scoreUs = 0, scoreThem = 0, matchLog = [];
+
+        function saveMatchState() {
+            localStorage.setItem(MATCH_KEY, JSON.stringify({ scoreUs, scoreThem, matchLog }));
+        }
+        function loadMatchState() {
+            try {
+                const stored = JSON.parse(localStorage.getItem(MATCH_KEY) || '{}');
+                scoreUs = stored.scoreUs || 0;
+                scoreThem = stored.scoreThem || 0;
+                matchLog = stored.matchLog || [];
+            } catch(e) { scoreUs = 0; scoreThem = 0; matchLog = []; }
+        }
+        function renderScore() {
+            document.getElementById('scoreUs').textContent = scoreUs;
+            document.getElementById('scoreThem').textContent = scoreThem;
+        }
+        function matchClock() {
+            const min = Math.floor(matchSeconds / 60) + 1; // phút thi đấu hiện tại
+            return `H${currentHalf} ${min}'`;
+        }
+        function logEvent(icon, text) {
+            matchLog.unshift({ clock: matchClock(), icon, text });
+            renderLog(); saveMatchState();
+        }
+        function renderLog() {
+            const panel = document.getElementById('matchLogPanel');
+            if (matchLog.length === 0) {
+                panel.innerHTML = '<div class="log-empty">Chưa có sự kiện nào.</div>';
+                return;
+            }
+            panel.innerHTML = matchLog.map(ev =>
+                `<div class="log-item"><span class="log-time">${ev.clock}</span><span>${ev.icon} ${ev.text}</span></div>`
+            ).join('');
+        }
+        function toggleLog() {
+            document.getElementById('matchLogPanel').classList.toggle('hidden');
+        }
+        function playerLabel(p) {
+            return (p.num ? '#' + p.num + ' ' : '') + p.name;
+        }
+        function goalUs() {
+            const onPitch = players.filter(p => p.onPitch);
+            if (onPitch.length === 0) {
+                scoreUs++; renderScore(); logEvent('⚽', 'Misa ghi bàn'); return;
+            }
+            openModal('⚽ Ai ghi bàn?', body => {
+                onPitch.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.className = 'modal-pick-btn';
+                    btn.textContent = playerLabel(p);
+                    btn.onclick = () => pickAssist(p);
+                    body.appendChild(btn);
+                });
+                const skip = document.createElement('button');
+                skip.className = 'modal-pick-btn skip';
+                skip.textContent = 'Không rõ / Phản lưới';
+                skip.onclick = () => { closeModal(); scoreUs++; renderScore(); logEvent('⚽', 'Misa ghi bàn'); };
+                body.appendChild(skip);
+            });
+        }
+        function pickAssist(scorer) {
+            const others = players.filter(p => p.onPitch && p.id !== scorer.id);
+            const finish = (assist) => {
+                closeModal(); scoreUs++; renderScore();
+                logEvent('⚽', playerLabel(scorer) + (assist ? ` (KT: ${playerLabel(assist)})` : ''));
+            };
+            if (others.length === 0) { finish(null); return; }
+            openModal('🎯 Ai kiến tạo?', body => {
+                others.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.className = 'modal-pick-btn';
+                    btn.textContent = playerLabel(p);
+                    btn.onclick = () => finish(p);
+                    body.appendChild(btn);
+                });
+                const skip = document.createElement('button');
+                skip.className = 'modal-pick-btn skip';
+                skip.textContent = 'Bỏ qua (không có kiến tạo)';
+                skip.onclick = () => finish(null);
+                body.appendChild(skip);
+            });
+        }
+        function goalThem() {
+            scoreThem++; renderScore();
+            logEvent('🥅', 'Đối thủ ghi bàn');
+        }
+        function adjustScore(side, delta) {
+            if (side === 'us') scoreUs = Math.max(0, scoreUs + delta);
+            else scoreThem = Math.max(0, scoreThem + delta);
+            renderScore(); saveMatchState();
+        }
+
+        // --- MODAL DÙNG CHUNG ---
+        const modalOverlay = document.getElementById('appModal');
+        function openModal(title, buildFn) {
+            document.getElementById('modalTitle').textContent = title;
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '';
+            buildFn(body);
+            modalOverlay.classList.remove('hidden');
+        }
+        function closeModal() { modalOverlay.classList.add('hidden'); }
+
         // --- CẦU THỦ & BẢNG THỐNG KÊ MÀU SẮC ---
         const PLAYERS_KEY = 'saBanBongDa_Players';
-        let players = []; 
+        let players = [];
         const playerListEl = document.getElementById('playerList');
         const playerNameInput = document.getElementById('playerName');
+        const playerNumberInput = document.getElementById('playerNumber');
+        const playerPosInput = document.getElementById('playerPos');
         const colorPriority = { 'red': 1, 'blue': 2, 'yellow': 3, 'white': 4 };
         const colorClasses = { 'red': 'tag-red', 'blue': 'tag-blue', 'yellow': 'tag-yellow', 'white': 'tag-white' };
         let selectedColors = new Set();
 
         function savePlayers() { localStorage.setItem(PLAYERS_KEY, JSON.stringify(players)); }
-        function loadPlayers() { 
-            const stored = localStorage.getItem(PLAYERS_KEY); 
-            players = stored ? JSON.parse(stored) : []; 
-            players.forEach(p => { p.onPitch = false; if(p.totalSecondsPlayed === undefined) p.totalSecondsPlayed = 0; });
+        function loadPlayers() {
+            const stored = localStorage.getItem(PLAYERS_KEY);
+            players = stored ? JSON.parse(stored) : [];
+            players.forEach(p => {
+                p.onPitch = false;
+                if(p.totalSecondsPlayed === undefined) p.totalSecondsPlayed = 0;
+                if(p.num === undefined) p.num = '';
+                if(p.pos === undefined) p.pos = '';
+            });
         }
 
         function toggleColor(el) {
             const color = el.getAttribute('data-color');
-            if (selectedColors.has(color)) { selectedColors.delete(color); el.classList.remove('active'); } 
+            if (selectedColors.has(color)) { selectedColors.delete(color); el.classList.remove('active'); }
             else { selectedColors.add(color); el.classList.add('active'); }
         }
         function resetColors() { selectedColors.clear(); document.querySelectorAll('.swatch').forEach(el => el.classList.remove('active')); }
@@ -542,9 +800,12 @@
         function addPlayer() {
             const name = playerNameInput.value.trim();
             if (!name) return;
-            players.push({ id: Date.now().toString(), name: name, tags: Array.from(selectedColors), onPitch: false, totalSecondsPlayed: 0 });
+            const num = playerNumberInput.value.trim();
+            const pos = playerPosInput.value;
+            players.push({ id: Date.now().toString(), name: name, num: num, pos: pos, tags: Array.from(selectedColors), onPitch: false, totalSecondsPlayed: 0 });
             savePlayers(); renderBench();
-            playerNameInput.value = ''; resetColors(); playerNameInput.focus();
+            playerNameInput.value = ''; playerNumberInput.value = ''; playerPosInput.value = '';
+            resetColors(); playerNameInput.focus();
         }
 
         function deletePlayerCompletely(id, event) {
@@ -557,10 +818,10 @@
         }
         function clearAllPlayers() {
             if(players.length === 0) return;
-            if(confirm("Xóa TOÀN BỘ danh sách cầu thủ?")) { 
-                players = []; savePlayers(); 
-                document.querySelectorAll('.player-token').forEach(t => t.remove()); 
-                renderBench(); 
+            if(confirm("Xóa TOÀN BỘ danh sách cầu thủ?")) {
+                players = []; savePlayers();
+                document.querySelectorAll('.player-token').forEach(t => t.remove());
+                renderBench();
             }
         }
 
@@ -580,23 +841,34 @@
             document.getElementById('count-white').textContent = counts.white;
 
             const statsPanel = document.getElementById('miniStatsPanel');
+            const pitchAlert = document.getElementById('pitchAlert');
+            const errMsgEl = document.getElementById('statsErrorMsg');
             const totalPlayersOnPitch = players.filter(p => p.onPitch).length;
-            
-            // Lỗi khi: (Ít hơn 2 Đỏ VÀ ít hơn 1 Xanh) HOẶC (Nhiều hơn 1 Trắng)
+
+            // QUY ĐỊNH: phải có ÍT NHẤT 2 Đỏ VÀ 1 Xanh trên sân; KHÔNG QUÁ 1 Trắng
+            const violations = [];
             if (totalPlayersOnPitch > 0) {
-                if ((counts.red < 2 && counts.blue < 1) || counts.white > 1) {
-                    statsPanel.classList.add('error-state');
-                } else {
-                    statsPanel.classList.remove('error-state');
-                }
+                if (counts.red < 2) violations.push(`Thiếu Đỏ (${counts.red}/2)`);
+                if (counts.blue < 1) violations.push(`Thiếu Xanh (${counts.blue}/1)`);
+                if (counts.white > 1) violations.push(`Thừa Trắng (${counts.white}/1)`);
+            }
+
+            if (violations.length > 0) {
+                statsPanel.classList.add('error-state');
+                errMsgEl.textContent = violations.join(' · ');
+                errMsgEl.style.display = 'inline';
+                pitchAlert.textContent = '⚠️ ' + violations.join(' · ');
+                pitchAlert.classList.remove('hidden');
             } else {
-                statsPanel.classList.remove('error-state'); 
+                statsPanel.classList.remove('error-state');
+                errMsgEl.style.display = 'none';
+                pitchAlert.classList.add('hidden');
             }
         }
 
         function renderBench() {
             playerListEl.innerHTML = '';
-            updatePitchStats(); 
+            updatePitchStats();
 
             const benchedPlayers = players.filter(p => !p.onPitch);
 
@@ -606,64 +878,200 @@
                 return;
             }
 
+            // Người đá ÍT NHẤT xếp trước (ưu tiên vào sân để chia giờ công bằng)
             const sortedPlayers = [...benchedPlayers].sort((a, b) => {
+                const timeDiff = (a.totalSecondsPlayed || 0) - (b.totalSecondsPlayed || 0);
+                if (timeDiff !== 0) return timeDiff;
                 const valA = a.tags.length > 0 ? colorPriority[a.tags[0]] : 99;
                 const valB = b.tags.length > 0 ? colorPriority[b.tags[0]] : 99;
                 return valA - valB;
             });
 
+            const threshold = getSubThresholdSec();
+
             sortedPlayers.forEach(player => {
                 const card = document.createElement('div');
-                card.className = 'player-card';
+                card.className = 'player-card' + (player.pos === 'GK' ? ' gk-card' : '');
                 card.onclick = () => addToPitch(player);
                 let tagsHtml = player.tags.map(tag => `<div class="card-tag ${colorClasses[tag]}"></div>`).join('');
-                
+                const posHtml = player.pos ? `<div class="card-pos-pill pos-${player.pos}">${player.pos}${player.num ? ' · ' + player.num : ''}</div>` : (player.num ? `<div class="card-pos-pill" style="background:#6b7280;">#${player.num}</div>` : '');
+                const overClass = (player.totalSecondsPlayed || 0) >= threshold ? ' over' : '';
+
                 card.innerHTML = `
                     <div class="btn-remove-player" onclick="deletePlayerCompletely('${player.id}', event)">×</div>
                     <div class="card-name" title="${player.name}">${player.name}</div>
+                    ${posHtml}
                     <div class="card-tags">${tagsHtml}</div>
-                    <div class="card-time">⏱ ${formatPlayerTime(player.totalSecondsPlayed)}</div>
+                    <div class="card-time${overClass}">⏱ ${formatPlayerTime(player.totalSecondsPlayed)}</div>
                 `;
                 playerListEl.appendChild(card);
             });
         }
 
-        function addToPitch(player, leftPct = null, topPct = null) {
+        function addToPitch(player, leftPct = null, topPct = null, silent = false) {
             if(document.getElementById(`token-${player.id}`)) return;
             player.onPitch = true; renderBench(); savePlayers();
 
             const token = document.createElement('div');
-            token.className = 'draggable-item player-token';
+            token.className = 'draggable-item player-token' + (player.pos === 'GK' ? ' gk' : '');
             token.id = `token-${player.id}`;
             token.dataset.playerId = player.id;
 
-            const initial = player.name.substring(0, 2).toUpperCase();
+            const label = player.num ? player.num : player.name.substring(0, 2).toUpperCase();
             let tagsHtml = player.tags.map(tag => `<div class="token-tag-dot ${colorClasses[tag]}"></div>`).join('');
+            const posBadge = player.pos ? `<div class="tk-posbadge pos-${player.pos}">${player.pos}</div>` : '';
 
             token.innerHTML = `
-                <span>${initial}</span>
+                ${posBadge}
+                <span>${label}</span>
                 <div class="token-tags">${tagsHtml}</div>
                 <div class="token-time" id="time-badge-${player.id}">⏱ ${formatPlayerTime(player.totalSecondsPlayed)}</div>
             `;
+            token.title = player.name;
 
-            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; } 
+            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; }
             else { const offsetX = Math.floor(Math.random() * 60) - 80; token.style.left = `calc(50% + ${offsetX}px)`; token.style.top = `50%`; }
 
             pitch.appendChild(token); makeDraggable(token);
+            checkSubAlerts();
+
+            if (!silent && (isRunning || matchSeconds > 0)) logEvent('🔼', `${playerLabel(player)} vào sân`);
         }
 
         function addOpponent(leftPct = null, topPct = null) {
             const token = document.createElement('div');
             token.className = 'draggable-item opponent-token';
             token.innerHTML = '👤';
-            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; } 
+            if(leftPct !== null && topPct !== null) { token.style.left = leftPct + '%'; token.style.top = topPct + '%'; }
             else { const offsetX = Math.floor(Math.random() * 60) + 40; const offsetY = Math.floor(Math.random() * 80) - 40; token.style.left = `calc(50% + ${offsetX}px)`; token.style.top = `calc(50% + ${offsetY}px)`; }
             pitch.appendChild(token); makeDraggable(token);
         }
 
-        // --- LƯU ĐỘI HÌNH ---
-        const FORMATION_KEY = 'saBan_Formation';
-        function saveFormation() {
+        // --- SƠ ĐỒ CHIẾN THUẬT MẪU ---
+        // Tọa độ tính theo % trên sân NGANG (đội nhà phòng ngự bên trái, tấn công sang phải)
+        const TEMPLATES = {
+            '7': {
+                '2-3-1': [
+                    { x: 6,  y: 50, role: 'GK' },
+                    { x: 18, y: 30, role: 'DF' }, { x: 18, y: 70, role: 'DF' },
+                    { x: 32, y: 18, role: 'MF' }, { x: 30, y: 50, role: 'MF' }, { x: 32, y: 82, role: 'MF' },
+                    { x: 44, y: 50, role: 'FW' }
+                ],
+                '3-2-1': [
+                    { x: 6,  y: 50, role: 'GK' },
+                    { x: 18, y: 24, role: 'DF' }, { x: 16, y: 50, role: 'DF' }, { x: 18, y: 76, role: 'DF' },
+                    { x: 32, y: 35, role: 'MF' }, { x: 32, y: 65, role: 'MF' },
+                    { x: 44, y: 50, role: 'FW' }
+                ],
+                '2-1-2-1': [
+                    { x: 6,  y: 50, role: 'GK' },
+                    { x: 17, y: 30, role: 'DF' }, { x: 17, y: 70, role: 'DF' },
+                    { x: 26, y: 50, role: 'MF' },
+                    { x: 36, y: 24, role: 'MF' }, { x: 36, y: 76, role: 'MF' },
+                    { x: 45, y: 50, role: 'FW' }
+                ],
+                '1-2-3': [
+                    { x: 6,  y: 50, role: 'GK' },
+                    { x: 16, y: 50, role: 'DF' },
+                    { x: 28, y: 30, role: 'MF' }, { x: 28, y: 70, role: 'MF' },
+                    { x: 42, y: 20, role: 'FW' }, { x: 44, y: 50, role: 'FW' }, { x: 42, y: 80, role: 'FW' }
+                ]
+            },
+            '11': {
+                '4-3-3': [
+                    { x: 5,  y: 50, role: 'GK' },
+                    { x: 16, y: 14, role: 'DF' }, { x: 14, y: 38, role: 'DF' }, { x: 14, y: 62, role: 'DF' }, { x: 16, y: 86, role: 'DF' },
+                    { x: 28, y: 30, role: 'MF' }, { x: 26, y: 50, role: 'MF' }, { x: 28, y: 70, role: 'MF' },
+                    { x: 42, y: 18, role: 'FW' }, { x: 45, y: 50, role: 'FW' }, { x: 42, y: 82, role: 'FW' }
+                ],
+                '4-4-2': [
+                    { x: 5,  y: 50, role: 'GK' },
+                    { x: 16, y: 14, role: 'DF' }, { x: 14, y: 38, role: 'DF' }, { x: 14, y: 62, role: 'DF' }, { x: 16, y: 86, role: 'DF' },
+                    { x: 30, y: 12, role: 'MF' }, { x: 28, y: 38, role: 'MF' }, { x: 28, y: 62, role: 'MF' }, { x: 30, y: 88, role: 'MF' },
+                    { x: 43, y: 38, role: 'FW' }, { x: 43, y: 62, role: 'FW' }
+                ],
+                '3-5-2': [
+                    { x: 5,  y: 50, role: 'GK' },
+                    { x: 15, y: 28, role: 'DF' }, { x: 13, y: 50, role: 'DF' }, { x: 15, y: 72, role: 'DF' },
+                    { x: 30, y: 8,  role: 'MF' }, { x: 27, y: 30, role: 'MF' }, { x: 25, y: 50, role: 'MF' }, { x: 27, y: 70, role: 'MF' }, { x: 30, y: 92, role: 'MF' },
+                    { x: 43, y: 38, role: 'FW' }, { x: 43, y: 62, role: 'FW' }
+                ],
+                '4-2-3-1': [
+                    { x: 5,  y: 50, role: 'GK' },
+                    { x: 16, y: 14, role: 'DF' }, { x: 14, y: 38, role: 'DF' }, { x: 14, y: 62, role: 'DF' }, { x: 16, y: 86, role: 'DF' },
+                    { x: 25, y: 38, role: 'MF' }, { x: 25, y: 62, role: 'MF' },
+                    { x: 35, y: 20, role: 'MF' }, { x: 35, y: 50, role: 'MF' }, { x: 35, y: 80, role: 'MF' },
+                    { x: 45, y: 50, role: 'FW' }
+                ]
+            }
+        };
+
+        function populateTemplates() {
+            const type = document.getElementById('pitchType').value;
+            const sel = document.getElementById('templateSelect');
+            sel.innerHTML = '';
+            Object.keys(TEMPLATES[type]).forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name; opt.textContent = name;
+                sel.appendChild(opt);
+            });
+        }
+
+        function applyTemplate() {
+            const type = document.getElementById('pitchType').value;
+            const name = document.getElementById('templateSelect').value;
+            const slots = TEMPLATES[type][name];
+            if (!slots) return;
+            if (players.length === 0) { alert('Chưa có cầu thủ nào! Thêm cầu thủ trước nhé.'); return; }
+
+            // Ưu tiên: người đang trên sân -> người đá ít nhất
+            const pool = [...players].sort((a, b) => {
+                const pitchDiff = (b.onPitch ? 1 : 0) - (a.onPitch ? 1 : 0);
+                if (pitchDiff !== 0) return pitchDiff;
+                return (a.totalSecondsPlayed || 0) - (b.totalSecondsPlayed || 0);
+            });
+
+            const chosen = new Set();
+            const assignments = [];
+
+            // Lượt 1: ghép đúng vị trí sở trường (GK vào khung gỗ, DF về hàng thủ...)
+            slots.forEach(slot => {
+                const match = pool.find(p => !chosen.has(p.id) && p.pos === slot.role);
+                if (match) { chosen.add(match.id); assignments.push({ slot, player: match }); }
+            });
+            // Lượt 2: lấp chỗ trống bằng người còn lại
+            slots.forEach(slot => {
+                if (assignments.some(a => a.slot === slot)) return;
+                const next = pool.find(p => !chosen.has(p.id));
+                if (next) { chosen.add(next.id); assignments.push({ slot, player: next }); }
+            });
+
+            // Dọn sân (giữ quân địch và bóng)
+            players.forEach(p => p.onPitch = false);
+            document.querySelectorAll('.player-token').forEach(t => t.remove());
+
+            const isFs = document.body.classList.contains('fullscreen-mode');
+            assignments.forEach(a => {
+                const x = isFs ? a.slot.y : a.slot.x;
+                const y = isFs ? a.slot.x : a.slot.y;
+                addToPitch(a.player, x, y, true);
+            });
+
+            renderBench(); savePlayers();
+            if (assignments.length < slots.length) {
+                alert(`Sơ đồ ${name} cần ${slots.length} người nhưng chỉ có ${assignments.length} cầu thủ trong danh sách.`);
+            }
+        }
+
+        // --- LƯU NHIỀU ĐỘI HÌNH CÓ TÊN ---
+        const FORMATION_SLOTS_KEY = 'saBan_FormationSlots';
+        function getFormationSlots() {
+            try { return JSON.parse(localStorage.getItem(FORMATION_SLOTS_KEY) || '[]'); }
+            catch(e) { return []; }
+        }
+        function setFormationSlots(slots) { localStorage.setItem(FORMATION_SLOTS_KEY, JSON.stringify(slots)); }
+
+        function captureFormation() {
             const formation = [];
             document.querySelectorAll('.draggable-item').forEach(el => {
                 const percentLeft = (el.offsetLeft / pitch.offsetWidth) * 100;
@@ -673,29 +1081,68 @@
                 } else if (el.classList.contains('opponent-token')) { formation.push({ type: 'opponent', x: percentLeft, y: percentTop });
                 } else if (el.classList.contains('football-token')) { formation.push({ type: 'ball', x: percentLeft, y: percentTop }); }
             });
-            localStorage.setItem(FORMATION_KEY, JSON.stringify(formation)); alert("Đã lưu đội hình hiện tại thành công!");
+            return formation;
         }
-        function loadFormation() {
-            const stored = localStorage.getItem(FORMATION_KEY);
-            if (!stored) { alert("Chưa có đội hình nào được lưu!"); return; }
-            const formation = JSON.parse(stored);
-            players.forEach(p => p.onPitch = false); document.querySelectorAll('.player-token, .opponent-token').forEach(t => t.remove());
-            formation.forEach(item => {
-                if (item.type === 'ball') { ball.style.left = item.x + '%'; ball.style.top = item.y + '%'; } 
-                else if (item.type === 'opponent') { addOpponent(item.x, item.y); }
-                else if (item.type === 'player') { const player = players.find(p => p.id === item.id); if (player) addToPitch(player, item.x, item.y); }
+
+        function saveFormation() {
+            const slots = getFormationSlots();
+            const name = prompt('Đặt tên cho đội hình này:', `Đội hình ${slots.length + 1}`);
+            if (!name) return;
+            slots.push({ id: Date.now().toString(), name: name.trim(), data: captureFormation() });
+            setFormationSlots(slots);
+            alert(`Đã lưu "${name.trim()}" thành công!`);
+        }
+
+        function openFormationList() {
+            const slots = getFormationSlots();
+            if (slots.length === 0) { alert('Chưa có đội hình nào được lưu!'); return; }
+            openModal('📂 Chọn đội hình đã lưu', body => {
+                slots.forEach(slot => {
+                    const row = document.createElement('div');
+                    row.className = 'slot-row';
+                    const nameBtn = document.createElement('div');
+                    nameBtn.className = 'slot-name';
+                    nameBtn.textContent = slot.name;
+                    nameBtn.onclick = () => { closeModal(); applyFormationData(slot.data); };
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'slot-del';
+                    delBtn.textContent = '🗑';
+                    delBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm(`Xóa đội hình "${slot.name}"?`)) {
+                            setFormationSlots(getFormationSlots().filter(s => s.id !== slot.id));
+                            closeModal();
+                            openFormationList();
+                        }
+                    };
+                    row.appendChild(nameBtn); row.appendChild(delBtn);
+                    body.appendChild(row);
+                });
             });
-            renderBench(); alert("Đã tải lại đội hình!");
+        }
+
+        function applyFormationData(formation) {
+            players.forEach(p => p.onPitch = false);
+            document.querySelectorAll('.player-token, .opponent-token').forEach(t => t.remove());
+            formation.forEach(item => {
+                if (item.type === 'ball') { ball.style.left = item.x + '%'; ball.style.top = item.y + '%'; }
+                else if (item.type === 'opponent') { addOpponent(item.x, item.y); }
+                else if (item.type === 'player') { const player = players.find(p => p.id === item.id); if (player) addToPitch(player, item.x, item.y, true); }
+            });
+            renderBench(); savePlayers();
         }
 
         // --- DRAG & DROP ---
         function makeDraggable(element) {
             let isDragging = false; let lastTap = 0;
             const removeHandler = (e) => {
-                if(drawMode) return; if (element.id === 'match-ball') return; 
+                if(drawMode) return; if (element.id === 'match-ball') return;
                 if (element.classList.contains('player-token')) {
                     const pid = element.dataset.playerId; const p = players.find(x => x.id === pid);
-                    if (p) { p.onPitch = false; renderBench(); savePlayers(); }
+                    if (p) {
+                        p.onPitch = false; renderBench(); savePlayers();
+                        if (isRunning || matchSeconds > 0) logEvent('🔽', `${playerLabel(p)} ra sân`);
+                    }
                 }
                 element.remove(); if(e) e.preventDefault();
             };
